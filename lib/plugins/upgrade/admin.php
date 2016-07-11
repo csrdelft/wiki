@@ -19,6 +19,8 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     private $tgzversion;
     private $pluginversion;
 
+    protected $haderrors = false;
+
     public function __construct() {
         global $conf;
 
@@ -79,12 +81,19 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
         <?php
         $this->_say('</div>');
 
-        echo '<form action="" method="get" id="plugin__upgrade_form">';
+        $careful = '';
+        if($this->haderrors) {
+            echo '<div id="plugin__upgrade_careful">'.$this->getLang('careful').'</div>';
+            $careful = 'careful';
+        }
+
+        $action = script();
+        echo '<form action="' . $action . '" method="post" id="plugin__upgrade_form">';
         echo '<input type="hidden" name="do" value="admin" />';
         echo '<input type="hidden" name="page" value="upgrade" />';
-        echo '<input type="hidden" name="sectok" value="'.getSecurityToken().'" />';
-        if($next) echo '<input type="submit" name="step['.$next.']" value="'.$this->getLang('btn_continue').' ➡" class="button continue" />';
-        if($abrt) echo '<input type="submit" name="step[cancel]" value="✖ '.$this->getLang('btn_abort').'" class="button abort" />';
+        echo '<input type="hidden" name="sectok" value="' . getSecurityToken() . '" />';
+        if($next) echo '<button type="submit" name="step[' . $next . ']" value="1" class="button continue '.$careful.'">' . $this->getLang('btn_continue') . ' ➡</button>';
+        if($abrt) echo '<button type="submit" name="step[cancel]" value="1" class="button abort">✖ ' . $this->getLang('btn_abort') . '</button>';
         echo '</form>';
 
         $this->_progress($next);
@@ -174,7 +183,7 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     /**
      * Output the given arguments using vsprintf and flush buffers
      */
-    public static function _say() {
+    public function _say() {
         $args = func_get_args();
         echo '<img src="'.DOKU_BASE.'lib/images/blank.gif" width="16" height="16" alt="" /> ';
         echo vsprintf(array_shift($args)."<br />\n", $args);
@@ -185,7 +194,9 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     /**
      * Print a warning using the given arguments with vsprintf and flush buffers
      */
-    public static function _warn() {
+    public function _warn() {
+        $this->haderrors = true;
+
         $args = func_get_args();
         echo '<img src="'.DOKU_BASE.'lib/images/error.png" width="16" height="16" alt="!" /> ';
         echo vsprintf(array_shift($args)."<br />\n", $args);
@@ -278,16 +289,10 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
             }
         }
 
-        // next release will need 5.3
-        if($tgzversionnum > '2014-09-29z') {
-            $minphp = '5.3.0';
-        } else {
-            $minphp = '5.2.0';
-        }
-
         // check if PHP is up to date
+        $minphp = '5.3.3';
         if(version_compare(phpversion(), $minphp, '<')) {
-            $this->_warn($this->getLang('vs_php'));
+            $this->_warn($this->getLang('vs_php'), $minphp, phpversion());
             $ok = false;
         }
 
@@ -299,7 +304,7 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
      */
     private function _step_done() {
         echo $this->getLang('finish');
-        echo "<script>location.href='".DOKU_URL."';</script>";
+        echo "<script type='text/javascript'>location.href='".DOKU_URL."';</script>";
     }
 
     /**
@@ -310,11 +315,11 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     private function _step_download() {
         $this->_say($this->getLang('dl_from'), $this->tgzurl);
 
-        @set_time_limit(120);
+        @set_time_limit(300);
         @ignore_user_abort();
 
         $http          = new DokuHTTPClient();
-        $http->timeout = 120;
+        $http->timeout = 300;
         $data          = $http->get($this->tgzurl);
 
         if(!$data) {
@@ -341,7 +346,7 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     private function _step_unpack() {
         $this->_say('<b>'.$this->getLang('pk_extract').'</b>');
 
-        @set_time_limit(120);
+        @set_time_limit(300);
         @ignore_user_abort();
 
         try {
@@ -403,6 +408,8 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
      * Delete outdated files
      */
     private function _rmold() {
+        global $conf;
+
         $list = file($this->tgzdir.'data/deleted.files');
         foreach($list as $line) {
             $line = trim(preg_replace('/#.*$/', '', $line));
@@ -422,6 +429,7 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
 
         // make sure update message will be gone
         @touch(DOKU_INC.'doku.php');
+        @unlink($conf['cachedir'].'/messages.txt');
     }
 
     /**

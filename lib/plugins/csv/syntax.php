@@ -50,7 +50,7 @@ class syntax_plugin_csv extends DokuWiki_Syntax_Plugin {
     /**
      * Handle the matches
      */
-    function handle($match, $state, $pos, Doku_Handler &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         global $INFO;
         $match = substr($match, 4, -6);
 
@@ -59,6 +59,8 @@ class syntax_plugin_csv extends DokuWiki_Syntax_Plugin {
             'hdr_rows'        => 1,
             'hdr_cols'        => 0,
             'span_empty_cols' => 0,
+            'maxlines'        => 0,
+            'offset'          => 0,
             'file'            => '',
             'delim'           => ',',
             'enclosure'       => '"',
@@ -93,7 +95,7 @@ class syntax_plugin_csv extends DokuWiki_Syntax_Plugin {
     /**
      * Create output
      */
-    function render($mode, Doku_Renderer &$renderer, $opt) {
+    function render($mode, Doku_Renderer $renderer, $opt) {
         if($mode == 'metadata') return false;
 
         // load file data
@@ -132,6 +134,13 @@ class syntax_plugin_csv extends DokuWiki_Syntax_Plugin {
         $row    = $this->csv_explode_row($content, $opt['delim'], $opt['enclosure'], $opt['escape']);
         $maxcol = count($row);
         $line   = 0;
+
+        // use offset (only if offset is not default value 0)
+        if($opt['offset'] >= 1) {
+        	$content = explode("\n", $content);
+        	$content = array_slice($content, $opt['offset']+1-$opt['hdr_rows']);
+        	$content = implode("\n", $content);
+        }
 
         // create the table and start rendering
         $renderer->table_open($maxcol);
@@ -183,6 +192,11 @@ class syntax_plugin_csv extends DokuWiki_Syntax_Plugin {
             // get next row
             $row = $this->csv_explode_row($content, $opt['delim'], $opt['enclosure'], $opt['escape']);
             $line++;
+            
+            // limit max lines (only if maxlines is not default value 0)
+            if($opt['maxlines'] >= 1 and $opt['maxlines'] == ($line-$opt['hdr_rows'])) {
+            	$row = false;
+            }
         }
         $renderer->table_close();
 
@@ -339,5 +353,4 @@ class syntax_plugin_csv extends DokuWiki_Syntax_Plugin {
         return $fields;
     }
 }
-
 //Setup VIM: ex: et ts=4 enc=utf-8 :

@@ -205,6 +205,13 @@ class helper_plugin_data extends DokuWiki_Plugin {
         return $value;
     }
 
+    public function ensureAbsoluteId($id) {
+        if (substr($id,0,1) !== ':') {
+            $id = ':' . $id;
+        }
+        return $id;
+    }
+
     /**
      * Return XHTML formated data, depending on column type
      *
@@ -232,21 +239,30 @@ class helper_plugin_data extends DokuWiki_Plugin {
             switch($type) {
                 case 'page':
                     $val = $this->_addPrePostFixes($column['type'], $val);
+                    $val = $this->ensureAbsoluteId($val);
                     $outs[] = $R->internallink($val, null, null, true);
                     break;
                 case 'title':
+                    list($id, $title) = explode('|', $val, 2);
+                    $id = $this->_addPrePostFixes($column['type'], $id);
+                    $id = $this->ensureAbsoluteId($id);
+                    $outs[] = $R->internallink($id, $title, null, true);
+                    break;
                 case 'pageid':
                     list($id, $title) = explode('|', $val, 2);
 
                     //use ID from first value of the multivalued line
                     if($title == null) {
                         $title = $id;
-                        $id = $storedID;
+                        if(!empty($storedID)) {
+                            $id = $storedID;
+                        }
                     } else {
                         $storedID = $id;
                     }
 
                     $id = $this->_addPrePostFixes($column['type'], $id);
+
                     $outs[] = $R->internallink($id, $title, null, true);
                     break;
                 case 'nspage':
@@ -319,15 +335,20 @@ class helper_plugin_data extends DokuWiki_Plugin {
                     if(substr($type, 0, 3) == 'img') {
                         $width = (int) substr($type, 3);
                         if(!$width) {
-                            $width = 40;
+                            $width = $this->getConf('image_width');
                         }
 
-                        $title = $column['key'] . ': ' . basename(str_replace(':', '/', $val));
+                        list($mediaid, $title) = explode('|', $val, 2);
+                        if($title === null) {
+                            $title = $column['key'] . ': ' . basename(str_replace(':', '/', $mediaid));
+                        } else {
+                            $title = trim($title);
+                        }
 
                         if(media_isexternal($val)) {
-                            $html = $R->externalmedia($val, $title, $align = null, $width, $height = null, $cache = null, $linking = 'direct', true);
+                            $html = $R->externalmedia($mediaid, $title, $align = null, $width, $height = null, $cache = null, $linking = 'direct', true);
                         } else {
-                            $html = $R->internalmedia($val, $title, $align = null, $width, $height = null, $cache = null, $linking = 'direct', true);
+                            $html = $R->internalmedia($mediaid, $title, $align = null, $width, $height = null, $cache = null, $linking = 'direct', true);
                         }
                         if(strpos($html, 'mediafile') === false) {
                             $html = str_replace('href', 'rel="lightbox" href', $html);

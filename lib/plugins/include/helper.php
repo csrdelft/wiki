@@ -28,7 +28,7 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
     /**
      * Constructor loads default config settings once
      */
-    function helper_plugin_include() {
+    function __construct() {
         $this->defaults['noheader']  = $this->getConf('noheader');
         $this->defaults['firstsec']  = $this->getConf('firstseconly');
         $this->defaults['editbtn']   = $this->getConf('showeditbtn');
@@ -52,6 +52,7 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
         $this->defaults['order']     = $this->getConf('order');
         $this->defaults['rsort']     = $this->getConf('rsort');
         $this->defaults['depth']     = $this->getConf('depth');
+        $this->defaults['readmore']  = $this->getConf('readmore');
     }
 
     /**
@@ -217,6 +218,12 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
                 case 'aftereach':
                     $flags['aftereach'] = $value;
                     break;
+                case 'readmore':
+                    $flags['readmore'] = 1;
+                    break;
+                case 'noreadmore':
+                    $flags['readmore'] = 0;
+                    break;
             }
         }
         // the include_content URL parameter overrides flags
@@ -296,7 +303,7 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
         }
 
         if($flags['firstsec']) {
-            $this->_get_firstsec($ins, $page);  // only first section 
+            $this->_get_firstsec($ins, $page, $flags);  // only first section 
         }
         
         $ns  = getNS($page);
@@ -628,7 +635,7 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function _get_firstsec(&$ins, $page) {
+    function _get_firstsec(&$ins, $page, $flags) {
         $num = count($ins);
         $first_sect = false;
         $endpos = null; // end position in the input text
@@ -649,7 +656,9 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
             // more than that first section
             if(($first_sect) && ($ins[$i][0] == 'section_open')) {
                 $ins = array_slice($ins, 0, $first_sect);
-                $ins[] = array('plugin', array('include_readmore', array($page)));
+                if ($flags['readmore']) {
+                    $ins[] = array('plugin', array('include_readmore', array($page)));
+                }
                 $ins[] = array('section_close', array());
                 // store the end position in the include_closelastsecedit instruction so it can generate a matching button
                 $ins[] = array('plugin', array('include_closelastsecedit', array($endpos)));
@@ -695,7 +704,7 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
             }
             break;
         default:
-            $page = $this->_apply_macro($page);
+            $page = $this->_apply_macro($page, $parent_id);
             resolve_pageid(getNS($parent_id), $page, $exists); // resolve shortcuts and clean ID
             if (auth_quickaclcheck($page) >= AUTH_READ)
                 $pages[] = $page;
@@ -784,11 +793,44 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
         }
         return $pages;
     }
-
+    
+    /**
+     *  Get wiki language from "HTTP_ACCEPT_LANGUAGE"
+     *  We allow the pattern e.g. "ja,en-US;q=0.7,en;q=0.3"
+     */
+    function _get_language_of_wiki($id, $parent_id) {
+       global $conf;
+       $result = $conf['lang'];
+       if(strpos($id, '@BROWSER_LANG@') !== false){
+           $brlangp = "/([a-zA-Z]{1,8}(-[a-zA-Z]{1,8})*|\*)(;q=(0(.[0-9]{0,3})?|1(.0{0,3})?))?/";
+           if(preg_match_all(
+               $brlangp, $_SERVER["HTTP_ACCEPT_LANGUAGE"],
+               $matches, PREG_SET_ORDER
+           )){
+               $langs = array();
+               foreach($matches as $match){
+                   $langname = $match[1] == '*' ? $conf['lang'] : $match[1];
+                   $qvalue = $match[4] == '' ? 1.0 : $match[4];
+                   $langs[$langname] = $qvalue;
+               }
+               arsort($langs);
+               foreach($langs as $lang => $langq){
+                   $testpage = $this->_apply_macro(str_replace('@BROWSER_LANG@', $lang, $id), $parent_id);
+                   resolve_pageid(getNS($parent_id), $testpage, $exists);
+                   if($exists){
+                       $result = $lang;
+                       break;
+                   }
+               }
+           }                                                                                   
+       }                                                                                       
+       return cleanID($result);                                                                
+    }
+    
     /**
      * Makes user or date dependent includes possible
      */
-    function _apply_macro($id) {
+    function _apply_macro($id, $parent_id) {
         global $INFO;
         global $auth;
         
@@ -838,6 +880,7 @@ class helper_plugin_include extends DokuWiki_Plugin { // DokuWiki_Helper_Plugin
                 '@USER@'  => cleanID($user),
                 '@NAME@'  => cleanID($INFO['userinfo']['name']),
                 '@GROUP@' => cleanID($group),
+                '@BROWSER_LANG@'  => $this->_get_language_of_wiki($id, $parent_id),
                 '@YEAR@'  => date('Y',$time_stamp),
                 '@MONTH@' => date('m',$time_stamp),
                 '@WEEK@' => date('W',$time_stamp),

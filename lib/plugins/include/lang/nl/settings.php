@@ -4,6 +4,7 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * 
  * @author Mark Prins <mprins@users.sf.net>
+ * @author Johan Wijnker <johan@wijnker.eu>
  */
 $lang['noheader']              = 'toon de eerste kop van de ingesloten pagina/sectie niet';
 $lang['firstseconly']          = 'toon alleen de eerste sectie van de ingesloten pagina\'s';
@@ -19,7 +20,6 @@ $lang['showlinkbacks']         = 'toon linkbacks onder de ingesloten pagina (Lin
 $lang['showtags']              = 'toon labels onder de ingesloten pagina (Tag plugin vereist)';
 $lang['showeditbtn']           = 'toon aanpassen knop';
 $lang['doredirect']            = 'verwijs naar de originele pagina na aanpassen van de ingesloten pagina';
-$lang['usernamespace']         = 'naamruimte voor gebruikers pagina\'s';
 $lang['doindent']              = 'spring ingesloten pagina\'s in relatief aan de pagina waarin ze ingesloten worden';
 $lang['linkonly']              = 'alleen een link naar de ingesloten pagina opnemen en niet de inhoud';
 $lang['title']                 = 'gebruik de eerste kop als link ook al staat useheading uit (alleen van toepassing op linkonly modus)';
@@ -35,3 +35,4 @@ $lang['order_o_indexmenu']     = 'aangepaste volgorde met indexmenu syntax';
 $lang['order_o_custom']        = 'aangepaste volgorde met include syntax';
 $lang['rsort']                 = 'draai de sorteervolgorde van de ingesloten pagina\'s om';
 $lang['depth']                 = 'maximum diepte van de naamruimte insluitingen, 0 voor onbeperkt';
+$lang['readmore']              = 'Toon de \'Lees verder\' link als er alleen een eerste deel is of niet';

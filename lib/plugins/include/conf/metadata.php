@@ -19,7 +19,6 @@ $meta['showlinkbacks'] = array('onoff');
 $meta['showtags']      = array('onoff');
 $meta['showeditbtn']   = array('onoff');
 $meta['doredirect']    = array('onoff');
-$meta['usernamespace'] = array('string');
 $meta['doindent']      = array('onoff');
 $meta['linkonly']      = array('onoff');
 $meta['title']         = array('onoff');
@@ -29,4 +28,6 @@ $meta['safeindex']     = array('onoff');
 $meta['order']         = array('multichoice', '_choices' => array('id', 'title', 'created', 'modified', 'indexmenu', 'custom'));
 $meta['rsort']         = array('onoff');
 $meta['depth']         = array('numeric', '_min' => 0);
+$meta['readmore']      = array('onoff');
+$meta['debugoutput']   = array('onoff');
 //Setup VIM: ex: et ts=2 :

@@ -69,7 +69,7 @@ class syntax_plugin_include_include extends DokuWiki_Syntax_Plugin {
      * @param Doku_Handler $handler The hanlder object
      * @return array The instructions of the plugin
      */
-    function handle($match, $state, $pos, Doku_Handler &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
 
         $match = substr($match, 2, -2); // strip markup
         list($match, $flags) = explode('&', $match, 2);
@@ -87,7 +87,7 @@ class syntax_plugin_include_include extends DokuWiki_Syntax_Plugin {
      *
      * @author Michael Hamann <michael@content-space.de>
      */
-    function render($format, Doku_Renderer &$renderer, $data) {
+    function render($format, Doku_Renderer $renderer, $data) {
         global $ID;
 
         // static stack that records all ancestors of the child pages
@@ -124,7 +124,7 @@ class syntax_plugin_include_include extends DokuWiki_Syntax_Plugin {
         }
 
         $secids = array();
-        if ($format == 'xhtml') {
+        if ($format == 'xhtml' || $format == 'odt') {
             $secids = p_get_metadata($ID, 'plugin_include secids');
         }
 
@@ -153,7 +153,16 @@ class syntax_plugin_include_include extends DokuWiki_Syntax_Plugin {
 
             $instructions = $this->helper->_get_instructions($id, $sect, $mode, $level, $flags, $root_id, $secids);
 
+            if (!$flags['editbtn']) {
+                global $conf;
+                $maxseclevel_org = $conf['maxseclevel'];
+                $conf['maxseclevel'] = 0;
+            }
             $renderer->nest($instructions);
+            if (isset($maxseclevel_org)) {
+                $conf['maxseclevel'] = $maxseclevel_org;
+                unset($maxseclevel_org);
+            }
 
             array_pop($page_stack);
         }

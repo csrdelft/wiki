@@ -22,7 +22,7 @@ class action_plugin_include extends DokuWiki_Action_Plugin {
     /* @var helper_plugin_include $helper */
     var $helper = null;
 
-    function action_plugin_include() {
+    function __construct() {
         $this->helper = plugin_load('helper', 'include');
     }
  
@@ -131,7 +131,7 @@ class action_plugin_include extends DokuWiki_Action_Plugin {
      */
     function handle_metadata(&$event, $param) {
         global $conf;
-        if($conf['allowdebug']) {
+        if($conf['allowdebug'] && $this->getConf('debugoutput')) {
             dbglog('---- PLUGIN INCLUDE META DATA START ----');
             dbglog($event->data);
             dbglog('---- PLUGIN INCLUDE META DATA END ----');
@@ -144,7 +144,7 @@ class action_plugin_include extends DokuWiki_Action_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      * @author Michael Hamann <michael@content-space.de>
      */
-    function handle_parser(Doku_Event &$event, $param) {
+    function handle_parser(Doku_Event $event, $param) {
         global $ID;
 
         $level = 0;
@@ -212,8 +212,8 @@ class action_plugin_include extends DokuWiki_Action_Plugin {
         if(!isset($cache->mode) || $cache->mode == 'i') return;
 
         $depends = p_get_metadata($cache->page, 'plugin_include');
-        
-        if($conf['allowdebug']) {
+
+        if($conf['allowdebug'] && $this->getConf('debugoutput')) {
             dbglog('---- PLUGIN INCLUDE CACHE DEPENDS START ----');
             dbglog($depends);
             dbglog('---- PLUGIN INCLUDE CACHE DEPENDS END ----');
@@ -228,7 +228,7 @@ class action_plugin_include extends DokuWiki_Action_Plugin {
             $depends['include_content'] != isset($_REQUEST['include_content'])) {
 
             $cache->depends['purge'] = true; // included pages changed or old metadata - request purge.
-            if($conf['allowdebug']) {
+            if($conf['allowdebug'] && $this->getConf('debugoutput')) {
                 dbglog('---- PLUGIN INCLUDE: REQUESTING CACHE PURGE ----');
                 dbglog('---- PLUGIN INCLUDE CACHE PAGES FROM META START ----');
                 dbglog($depends['pages']);
@@ -340,7 +340,14 @@ class action_plugin_include extends DokuWiki_Action_Plugin {
 
         // break the pattern up into its parts
         list($mode, $page, $sect) = preg_split('/>|#/u', $syntax, 3);
-        $newpage = $handler->adaptRelativeId($page);
+
+        if (method_exists($handler, 'adaptRelativeId')) { // move plugin before version 2015-05-16
+            $newpage = $handler->adaptRelativeId($page);
+        } else {
+            $newpage = $handler->resolveMoves($page, 'page');
+            $newpage = $handler->relativeLink($page, $newpage, 'page');
+        }
+
         if ($newpage == $page) {
             return $match;
         } else {

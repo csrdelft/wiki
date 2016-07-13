@@ -36,7 +36,10 @@ class action_plugin_move_rewrite extends DokuWiki_Action_Plugin {
         if($event->data[3]) return;
 
         // only rewrite if not in move already
-        if(helper_plugin_move_rewrite::isLocked()) return;
+        $save = true;
+        if(helper_plugin_move_rewrite::isLocked()) {
+            $save = false;
+        }
 
         $id = $event->data[2];
         if($event->data[1]) $id = $event->data[1] . ':' . $id;
@@ -67,7 +70,7 @@ class action_plugin_move_rewrite extends DokuWiki_Action_Plugin {
         $helper = plugin_load('helper', 'move_rewrite', true);
         if(!is_null($helper)) {
             $stack[$id]    = true;
-            $event->result = $helper->rewritePage($id, $event->result);
+            $event->result = $helper->rewritePage($id, $event->result, $save);
             unset($stack[$id]);
         }
     }
@@ -92,13 +95,17 @@ class action_plugin_move_rewrite extends DokuWiki_Action_Plugin {
             }
         }
         if($id) {
-            $meta = p_get_metadata($id, 'plugin_move', METADATA_DONT_RENDER);
-            if($meta && (isset($meta['moves']) || isset($meta['media_moves']))) {
-                $file = wikiFN($id, '', false);
-                if(is_writable($file))
-                    $cache->depends['purge'] = true;
-                else // FIXME: print error here or fail silently?
-                    msg('Error: Page ' . hsc($id) . ' needs to be rewritten because of page renames but is not writable.', -1);
+            /** @var helper_plugin_move_rewrite $helper */
+            $helper = $this->loadHelper('move_rewrite');
+            if(!is_null($helper)) {
+                $meta = $helper->getMoveMeta($id);
+                if($meta && ($meta['pages'] || $meta['media'])) {
+                    $file = wikiFN($id, '', false);
+                    if(is_writable($file))
+                        $cache->depends['purge'] = true;
+                    else // FIXME: print error here or fail silently?
+                        msg('Error: Page ' . hsc($id) . ' needs to be rewritten because of page renames but is not writable.', -1);
+                }
             }
         }
     }

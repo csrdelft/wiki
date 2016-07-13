@@ -57,7 +57,6 @@ class helper_plugin_move_handler {
 
         if($type != 'media' && $type != 'page') throw new Exception('Not a valid type');
 
-        if($conf['useslash']) $old = str_replace('/', ':', $old);
         $old = resolve_id($this->origNS, $old, false);
 
         if($type == 'page') {
@@ -65,17 +64,42 @@ class helper_plugin_move_handler {
             // resolve_pageid does a lot more here, but we can't really assume this as the original pages might have been
             // deleted already
             if(substr($old, -1) === ':') $old .= $conf['start'];
-            $old = cleanID($old);
 
             $moves = $this->page_moves;
         } else {
             $moves = $this->media_moves;
         }
 
+        $old = cleanID($old);
+
         foreach($moves as $move) {
-            if($move[0] == $old) $old = $move[1];
+            if($move[0] == $old) {
+                $old = $move[1];
+            }
         }
+
         return $old; // this is now new
+    }
+
+    /**
+     * if the old link ended with a colon and the new one is a start page, adjust
+     *
+     * @param $relold string the old, possibly relative ID
+     * @param $new    string the new, full qualified ID
+     * @param $type   'media' or 'page'
+     * @return string
+     */
+    protected function _nsStartCheck($relold, $new, $type) {
+        global $conf;
+        if($type == 'page' && substr($relold, -1) == ':') {
+            $len = strlen($conf['start']);
+            if($new == $conf['start']) {
+                $new = '.:';
+            } else if(substr($new, -1 * ($len + 1)) == ':' . $conf['start']) {
+                $new = substr($new, 0, -1 * $len);
+            }
+        }
+        return $new;
     }
 
     /**
@@ -109,13 +133,18 @@ class helper_plugin_move_handler {
         if($conf['useslash']) $relold = str_replace('/', ':', $relold);
 
         // check if the link was relative
-        if(strpos($relold, ':') === false ||$relold{0} == '.' || substr($relold, -1) == ':') {
+        if(strpos($relold, ':') === false ||$relold{0} == '.') {
             $wasrel = true;
         } else {
             $wasrel = false;
         }
+
         // if it wasn't relative then, leave it absolute now, too
-        if(!$wasrel) return $new;
+        if(!$wasrel) {
+            if($this->ns && !getNS($new)) $new = ':' . $new;
+            $new = $this->_nsStartCheck($relold, $new, $type);
+            return $new;
+        }
 
         // split the paths and see how much common parts there are
         $selfpath = explode(':', $this->ns);
@@ -128,7 +157,7 @@ class helper_plugin_move_handler {
         // we now have the non-common part and a number of uppers
         $ups       = max(count($selfpath) - $common, 0);
         $remainder = array_slice($goalpath, $common);
-        $upper     = $ups ? array_fill(0, $ups, '..') : array();
+        $upper     = $ups ? array_fill(0, $ups, '..:') : array();
 
         // build the new relative path
         $newrel = join(':', $upper);
@@ -138,19 +167,13 @@ class helper_plugin_move_handler {
         if($newrel{0} != '.' && $this->ns && getNS($newrel)) $newrel = '.' . $newrel;
 
         // if the old link ended with a colon and the new one is a start page, adjust
-        if($type == 'page' && substr($relold, -1) == ':') {
-            $len = strlen($conf['start']);
-            if($newrel == $conf['start']) {
-                $newrel = '.:';
-            } else if(substr($newrel, -1 * ($len + 1)) == ':' . $conf['start']) {
-                $newrel = substr($newrel, 0, -1 * $len);
-            }
-        }
+        $newrel = $this->_nsStartCheck($relold,$newrel,$type);
 
         // don't use relative paths if it is ridicoulus:
         if(strlen($newrel) > strlen($new)) {
             $newrel = $new;
             if($this->ns && !getNS($new)) $newrel = ':' . $newrel;
+            $newrel = $this->_nsStartCheck($relold,$newrel,$type);
         }
 
         return $newrel;

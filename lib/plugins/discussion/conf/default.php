@@ -12,7 +12,6 @@ $conf['useavatar']    = 1;   // use Avatar Plugin to display user images in comm
 $conf['urlfield']     = 0;   // allow entering an URL
 $conf['addressfield'] = 0;   // allow entering an address
 $conf['adminimport']  = 0;   // allow admins to set all the fields for import
-$conf['usecocomment'] = 0;   // use coComment comment tracking
 $conf['wikisyntaxok'] = 1;   // allow wiki syntax in comments
 $conf['subscribe']    = 1;   // enable/disable subscribe to comments
 $conf['newestfirst']  = 0;   // list newest comments first
@@ -22,5 +21,6 @@ $conf['userealname']  = 1;
 $conf['threads_formposition'] = 'bottom'; // position of new thread form
 $conf['visibilityButton'] = 0; // show/hide button to hide the discussion section
 $conf['moderatorgroups']  = '';
+$conf['moderatorsnotify'] = 0;
 
 //Setup VIM: ex: et ts=2 enc=utf-8 :

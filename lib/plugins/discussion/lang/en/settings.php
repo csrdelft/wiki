@@ -16,7 +16,6 @@ $lang['useavatar']    = 'use avatar user images for comments';
 $lang['urlfield']     = 'allow users to enter an URL';
 $lang['addressfield'] = 'allow users to enter a postal address';
 $lang['adminimport']  = 'allow admins to set  all fields for import';
-$lang['usecocomment'] = 'use coComment comment tracking';
 $lang['wikisyntaxok'] = 'allow wiki syntax in comments';
 $lang['subscribe']    = 'enable/disable subscribe to comments';
 $lang['newestfirst']  = 'list newest comments first';
@@ -33,4 +32,5 @@ $lang['threads_formposition_o_bottom'] = 'bottom';
 $lang['visibilityButton'] = 'Enable button for toggling the visibility of the discussion section';
 
 $lang['moderatorgroups']  = 'Comma-separated list of moderator groups (equal to DokuWiki-Manager permission level)';
+$lang['moderatorsnotify']  = 'Send notification emails of the new comments to moderators';
 //Setup VIM: ex: et ts=2 enc=utf-8 :

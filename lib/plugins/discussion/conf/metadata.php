@@ -15,7 +15,6 @@ $meta['useavatar']    = array('onoff');
 $meta['urlfield']     = array('onoff');
 $meta['addressfield'] = array('onoff');
 $meta['adminimport']  = array('onoff');
-$meta['usecocomment'] = array('onoff');
 $meta['wikisyntaxok'] = array('onoff');
 $meta['subscribe']    = array('onoff');
 $meta['newestfirst']  = array('onoff');
@@ -28,5 +27,6 @@ $meta['threads_formposition'] = array(
                                 );
 $meta['visibilityButton'] = array('onoff');
 $meta['moderatorgroups']  = array('string');
+$meta['moderatorsnotify']  = array('onoff');
 
 //Setup VIM: ex: et ts=2 enc=utf-8 :

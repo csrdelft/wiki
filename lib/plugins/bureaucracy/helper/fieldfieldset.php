@@ -6,6 +6,8 @@
  */
 class helper_plugin_bureaucracy_fieldfieldset extends helper_plugin_bureaucracy_field {
     protected $mandatory_args = 1;
+    /** @var array with zero, one entry (fieldname) or two entries (fieldname and match value) */
+    public $depends_on = array();
 
     /**
      * Arguments:
@@ -23,9 +25,7 @@ class helper_plugin_bureaucracy_fieldfieldset extends helper_plugin_bureaucracy_
         if (count($args) > 0) {
             $this->opt['label'] = array_shift($args);
             $this->opt['display'] = $this->opt['label'];
-        }
 
-        if (count($args) > 0) {
             $this->depends_on = $args;
         }
     }
@@ -33,13 +33,13 @@ class helper_plugin_bureaucracy_fieldfieldset extends helper_plugin_bureaucracy_
     /**
      * Render the top of the fieldset as XHTML
      *
-     * @params array     $params Additional HTML specific parameters
-     * @params Doku_Form $form   The target Doku_Form object
-     * @params int       $formid unique identifier of the form which contains this field
+     * @param array     $params Additional HTML specific parameters
+     * @param Doku_Form $form   The target Doku_Form object
+     * @param int       $formid unique identifier of the form which contains this field
      */
     function renderfield($params, Doku_Form $form, $formid) {
         $form->startFieldset(hsc($this->getParam('display')));
-        if (isset($this->depends_on)) {
+        if (!empty($this->depends_on)) {
             $dependencies = array_map('hsc',(array) $this->depends_on);
             if (count($this->depends_on) > 1) {
                 $msg = 'Only edit this fieldset if ' .
@@ -49,6 +49,7 @@ class helper_plugin_bureaucracy_fieldfieldset extends helper_plugin_bureaucracy_
                 $msg = 'Only edit this fieldset if ' .
                        '“<span class="bureaucracy_depends_fname">%s</span>” is set.';
             }
+
             $form->addElement('<p class="bureaucracy_depends">' . vsprintf($msg, $dependencies) . '</p>');
         }
     }
@@ -65,21 +66,25 @@ class helper_plugin_bureaucracy_fieldfieldset extends helper_plugin_bureaucracy_
      * @return bool Whether the passed value is valid
      */
     public function handle_post($value, &$fields, $index, $formid) {
-        if(!isset($this->depends_on)) {
+        if(empty($this->depends_on)) {
             return true;
         }
 
+        // search the field where fieldset depends on in fields before fieldset
         $hidden = false;
         for ($n = 0 ; $n < $index; ++$n) {
             $field = $fields[$n];
             if ($field->getParam('label') != $this->depends_on[0]) {
                 continue;
             }
-            $hidden = (count($this->depends_on) > 1) ?
-                      ($field->getParam('value') != $this->depends_on[1]) :
-                      !($field->isSet_());
+            if(count($this->depends_on) > 1) {
+                $hidden = $field->getParam('value') != $this->depends_on[1];
+            } else {
+                $hidden = !$field->isSet_();
+            }
             break;
         }
+        // mark fields after this fieldset as hidden
         if ($hidden) {
             $this->hidden = true;
             for ($n = $index + 1 ; $n < count($fields) ; ++$n) {
@@ -100,6 +105,10 @@ class helper_plugin_bureaucracy_fieldfieldset extends helper_plugin_bureaucracy_
      * @return mixed|null
      */
     function getParam($name) {
-        return ($name === 'value') ? null : parent::getParam($name);
+        if($name === 'value') {
+            return null;
+        } else {
+            return parent::getParam($name);
+        }
     }
 }

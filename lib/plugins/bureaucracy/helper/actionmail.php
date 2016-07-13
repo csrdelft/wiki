@@ -103,14 +103,25 @@ class helper_plugin_bureaucracy_actionmail extends helper_plugin_bureaucracy_act
 
             switch($field->getFieldType()) {
                 case 'fieldset':
-                    list($html, $text) = $this->mail_buildRow($label);
+                    if(!empty($field->depends_on)) {
+                        //print fieldset only if depend condition is true
+                        foreach($fields as $field_tmp) {
+                            if($field_tmp->getParam('label') === $field->depends_on[0] && $field_tmp->getParam('value') === $field->depends_on[1] ) {
+                                list($html, $text) =  $this->mail_buildRow($label);
+                            }
+                        }
+                    } else {
+                        list($html, $text) =  $this->mail_buildRow($label);
+                    }
                     break;
                 case 'file':
+                    if($value === null || $label === null) break; //print attachment only if field was visible
                     $file = $field->getParam('file');
                     if(!$file['size']) {
                         $message = $this->getLang('attachmentMailEmpty');
                     } else if($file['size'] > $this->getConf('maxEmailAttachmentSize')) {
                         $message = $file['name'] . ' ' . $this->getLang('attachmentMailToLarge');
+                        msg(sprintf($this->getLang('attachmentMailToLarge_userinfo'), hsc($file['name']), filesize_h($this->getConf('maxEmailAttachmentSize'))), 2);
                     } else {
                         $message = $file['name'];
                         $mail->attachFile($file['tmp_name'], $file['type'], $file['name']);
@@ -127,15 +138,13 @@ class helper_plugin_bureaucracy_actionmail extends helper_plugin_bureaucracy_act
                     }
                     break;
 
-                /** @noinspection PhpMissingBreakStatementInspection */
-                case 'email':
-                    if(!is_null($field->getParam('replyto'))) {
-                        $this->replyto[] = $value;
-                    }
-                /** fall through */
                 default:
                     if($value === null || $label === null) break;
                     list($html, $text) = $this->mail_buildRow($label, $value);
+
+                    if(!is_null($field->getParam('replyto'))) {
+                        $this->replyto[] = $value;
+                    }
             }
             $table_html .= $html;
             $table_text .= $text;

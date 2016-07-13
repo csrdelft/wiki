@@ -111,6 +111,8 @@ class helper_plugin_bureaucracy_field extends syntax_plugin_bureaucracy {
                 $this->opt['class'] = substr($arg, 1);
             } elseif(preg_match('/0{2,}/', $arg)) {
                 $this->opt['leadingzeros'] = strlen($arg);
+            } elseif($arg[0].$arg[1] == '**') {
+                $this->opt['matchexplanation'] = substr($arg,2);
             } else {
                 $t = $arg[0];
                 $d = substr($arg,1);
@@ -140,9 +142,9 @@ class helper_plugin_bureaucracy_field extends syntax_plugin_bureaucracy {
      * HTML output is created by passing the template $this->tpl to the simple
      * template engine _parse_tpl.
      *
-     * @params array     $params Additional HTML specific parameters
-     * @params Doku_Form $form   The target Doku_Form object
-     * @params int       $formid unique identifier of the form which contains this field
+     * @param array     $params Additional HTML specific parameters
+     * @param Doku_Form $form   The target Doku_Form object
+     * @param int       $formid unique identifier of the form which contains this field
      */
     public function renderfield($params, Doku_Form $form, $formid) {
         $this->_handlePreload();
@@ -256,8 +258,16 @@ class helper_plugin_bureaucracy_field extends syntax_plugin_bureaucracy {
         foreach ($this->checks as $check) {
             $checktype = $this->checktypes[$check['t']];
             if (!call_user_func(array($this, 'validate_' . $checktype), $check['d'], $value)) {
-                throw new Exception(sprintf($this->getLang('e_' . $checktype),
-                                            hsc($this->opt['label']), hsc($check['d'])));
+                //replacement is custom explanation or just the regexp or the requested value
+                if(isset($this->opt['matchexplanation'])) {
+                    $replacement = hsc($this->opt['matchexplanation']);
+                } elseif($checktype == 'match') {
+                    $replacement = sprintf($this->getLang('checkagainst'), hsc($check['d']));
+                } else {
+                    $replacement = hsc($check['d']);
+                }
+
+                throw new Exception(sprintf($this->getLang('e_' . $checktype), hsc($this->opt['label']), $replacement));
             }
         }
     }

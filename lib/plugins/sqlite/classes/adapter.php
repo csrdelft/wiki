@@ -10,6 +10,7 @@ abstract class helper_plugin_sqlite_adapter {
     protected $dbfile;
     protected $db = null;
     protected $data = array();
+    protected $nativealter = false;
 
     /**
      * return name of adapter
@@ -17,6 +18,15 @@ abstract class helper_plugin_sqlite_adapter {
      * @return string backend name as defined in helper.php
      */
     public abstract function getName();
+
+    /**
+     * Should the nativ ALTER TABLE implementation be used instead of workaround?
+     *
+     * @param bool $set
+     */
+    public function setUseNativeAlter($set) {
+        $this->nativealter = $set;
+    }
 
     /**
      * The file extension used by the adapter
@@ -32,6 +42,27 @@ abstract class helper_plugin_sqlite_adapter {
      */
     public function getDbname() {
         return $this->dbname;
+    }
+
+    /**
+     * Gives direct access to the database
+     *
+     * This is only usefull for the PDO Adapter as this gives direct access to the PDO object
+     * nontheless it should generally not be used
+     *
+     * @return null|PDO|resource
+     */
+    public function getDb() {
+       return $this->db;
+    }
+
+    /**
+     * Returns the path to the database file (if initialized)
+     *
+     * @return string
+     */
+    public function getDbFile() {
+        return $this->dbfile;
     }
 
     /**
@@ -106,9 +137,7 @@ abstract class helper_plugin_sqlite_adapter {
      *
      * Takes care of escaping
      *
-     * @param string $args
-     * @internal param string $sql - the statement
-     * @internal param $arguments ...
+     * @param array $args Array with sql string and parameters
      * @return bool|\PDOStatement|\SQLiteResult
      */
     public function query($args) {
@@ -121,9 +150,11 @@ abstract class helper_plugin_sqlite_adapter {
         if(!$sql) return false;
 
         // intercept ALTER TABLE statements
-        $match = null;
-        if(preg_match('/^ALTER\s+TABLE\s+([\w\.]+)\s+(.*)/i', $sql, $match)) {
-            return $this->_altertable($match[1], $match[2]);
+        if(!$this->nativealter) {
+            $match = null;
+            if(preg_match('/^ALTER\s+TABLE\s+([\w\.]+)\s+(.*)/i', $sql, $match)) {
+                return $this->_altertable($match[1], $match[2]);
+            }
         }
 
         // execute query
@@ -142,7 +173,7 @@ abstract class helper_plugin_sqlite_adapter {
      *
      * Takes care of escaping
      *
-     * @param $args
+     * @param array $args
      *    array of arguments:
      *      - string $sql - the statement
      *      - arguments...

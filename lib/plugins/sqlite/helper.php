@@ -20,10 +20,10 @@ require_once(DOKU_PLUGIN.'sqlite/classes/adapter.php');
  */
 class helper_plugin_sqlite extends DokuWiki_Plugin {
     /** @var helper_plugin_sqlite_adapter_pdosqlite|helper_plugin_sqlite_adapter|\helper_plugin_sqlite_adapter_sqlite2|null  */
-    var $adapter = null;
+    protected $adapter = null;
 
     /**
-     * @return helper_plugin_sqlite_adapter|null
+     * @return helper_plugin_sqlite_adapter_pdosqlite|helper_plugin_sqlite_adapter|\helper_plugin_sqlite_adapter_sqlite2|null
      */
     public function getAdapter() {
         return $this->adapter;
@@ -39,7 +39,7 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
     /**
      * constructor
      */
-    public function helper_plugin_sqlite() {
+    public function __construct() {
 
         if(!$this->adapter) {
             if($this->existsPDOSqlite() && empty($_ENV['SQLITE_SKIP_PDO'])) {
@@ -109,6 +109,8 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
         }
 
         $this->create_function('GETACCESSLEVEL', array($this, '_getAccessLevel'), 1);
+        $this->create_function('PAGEEXISTS', array($this, '_pageexists'), 1);
+        $this->create_function('REGEXP', array($this, '_regexp'), 2);
 
         return $this->_updatedb($init, $updatedir);
     }
@@ -162,6 +164,8 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
                     msg("SQLite: '".$this->adapter->getDbname()."' database upgrade failed for version ".$i, -1);
                     return false;
                 }
+            } else {
+                msg("SQLite: update file $file not found, skipped.", -1);
             }
         }
         return true;
@@ -172,6 +176,10 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
      * the given version.
      */
     private function _runupdatefile($file, $version) {
+        if(!file_exists($file)) {
+            msg("SQLite: Failed to find DB update file $file");
+            return false;
+        }
         $sql = io_readFile($file, false);
 
         $sql = $this->SQLstring2array($sql);
@@ -207,6 +215,37 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
         }
         $aclcache[$pageid] = $acl;
         return $acl;
+    }
+
+    /**
+     * Wrapper around page_exists() with static caching
+     *
+     * This function is registered as a SQL function named PAGEEXISTS
+     *
+     * @param string $pageid
+     * @return int 0|1
+     */
+    public function _pageexists($pageid) {
+        static $cache = array();
+        if(!isset($cache[$pageid])) {
+            $cache[$pageid] = page_exists($pageid);
+
+        }
+        return (int) $cache[$pageid];
+    }
+
+    /**
+     * Match a regular expression against a value
+     *
+     * This function is registered as a SQL function named REGEXP
+     *
+     * @param string $regexp
+     * @param string $value
+     * @return bool
+     */
+    public function _regexp($regexp, $value) {
+        $regexp = addcslashes($regexp, '/');
+        return (bool) preg_match('/'.$regexp.'/u', $value);
     }
 
     /**
@@ -304,6 +343,9 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
                 //TODO check rollback for sqlite PDO
                 if($this->adapter->getName() == DOKU_EXT_SQLITE) {
                     $this->query('ROLLBACK TRANSACTION');
+                } else {
+                    $err = $this->adapter->getDb()->errorInfo();
+                    msg($err[0].' '.$err[1].' '.$err[2].':<br /><pre>'.hsc($s).'</pre>', -1);
                 }
                 return false;
             }
@@ -444,11 +486,31 @@ class helper_plugin_sqlite extends DokuWiki_Plugin {
     }
 
     /**
+     * Convenience function to run an INSERT OR REPLACE operation
+     *
+     * The function takes a key-value array with the column names in the key and the actual value in the value,
+     * build the appropriate query and executes it.
+     *
+     * @param string $table the table the entry should be saved to (will not be escaped)
+     * @param array $entry A simple key-value pair array (only values will be escaped)
+     * @return bool|SQLiteResult
+     */
+    public function storeEntry($table, $entry) {
+        $keys = join(',', array_keys($entry));
+        $vals = join(',', array_fill(0,count($entry),'?'));
+
+        $sql = "INSERT INTO $table ($keys) VALUES ($vals)";
+        return $this->query($sql, array_values($entry));
+    }
+
+
+    /**
      * Execute a query with the given parameters.
      *
      * Takes care of escaping
      *
-     * @internal param string $args - the arguments of query(), the first is the sql and others are values
+     *
+     * @param string ...$args - the arguments of query(), the first is the sql and others are values
      * @return bool|\SQLiteResult
      */
     public function query() {

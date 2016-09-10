@@ -88,8 +88,10 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 		}
 
 		// als ingelogd genoeg permissies heeft gegevens ophalen en bewaren
-		if (LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', false)
-				OR ( LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', true) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
+		if (LoginModel::mag('P_LOGGED_IN,groep:wikitoegang') OR
+			(LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getTypeOptions())
+				AND $_SERVER['PHP_SELF'] == '/wiki/feed.php'
+			)
 		) {
 
 			// okay we're logged in - set the globals

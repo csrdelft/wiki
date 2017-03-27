@@ -1,25 +1,10 @@
 <?php
-/**
- * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * @author     FFTiger <fftiger@wikisquare.com>, myst6re <myst6re@wikisquare.com>
- */
 
 if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_imagebox extends DokuWiki_Syntax_Plugin {
-
-	function getInfo(){
-		return array(
-			'author' => 'FFTiger / myst6re',
-			'email'  => 'myst6re@wikisquare.com',
-			'date'   => '2010-05-30',
-			'name'   => 'Imagebox Plugin',
-			'desc'   => 'Entoure les images avec un cadre de décoration.',
-			'url'    => 'http://www.wikisquare.com/',
-		);
-	}
 
 	function getType(){ return 'protected'; }
 	function getAllowedTypes() { return array('substition','protected','disabled','formatting'); }
@@ -28,7 +13,7 @@ class syntax_plugin_imagebox extends DokuWiki_Syntax_Plugin {
 	function connectTo($mode) {	$this->Lexer->addEntryPattern('\[\{\{[^\|\}]+\|*(?=[^\}]*\}\}\])',$mode,'plugin_imagebox'); }
 	function postConnect() { $this->Lexer->addExitPattern('\}\}\]','plugin_imagebox'); }
 
-	function handle($match, $state, $pos, &$handler){
+	function handle($match, $state, $pos, Doku_Handler $handler){
 		switch($state){
 			case DOKU_LEXER_ENTER:
 				$match=Doku_Handler_Parse_Media(substr($match,3));
@@ -66,7 +51,8 @@ class syntax_plugin_imagebox extends DokuWiki_Syntax_Plugin {
 					$match['w'] = $match['height']*$gimgs[0]/$gimgs[1]:
 					$match['w'] = $gimgs[0];
 				}
-
+                                $match['width'] = $match['w'];
+                                $match['height'] = $match['h'];
 				if(!$match['align'] || $match['align']=='center'&&!$this->getConf('center_align'))
 					$match['align'] = 'rien';
 			return array($state,$match);
@@ -79,18 +65,18 @@ class syntax_plugin_imagebox extends DokuWiki_Syntax_Plugin {
 		}
 	}
 
-	function render($mode, &$renderer, $data){
+	function render($mode, Doku_Renderer $renderer, $data){
 		if($mode == 'xhtml'){
 			list($state,$match) = $data;
 
 			switch($state){
 				case DOKU_LEXER_ENTER:
-					$renderer->doc.= '<div class="thumb2 t'.$match['align'].'" style="width:'.($match['w']?($match['w']+10).'px':'auto').'"><div class="thumbinner">';
+					$renderer->doc.= '<div class="thumb2 t'.$match['align'].'"><div class="thumbinner">';
 					if($match['exist'])
-						$renderer->$match['type']($match['src'],$match['title'],'box2',$match['width'],$match['height'],$match['cache'],$match['linking']);
+						$renderer->{$match['type']}($match['src'],$match['title'],'box2',$match['width'],$match['height'],$match['cache'],$match['linking']);
 					else
 						$renderer->doc.= 'Invalid Link';
-					$renderer->doc.= '<div class="thumbcaption">';
+					$renderer->doc.= '<div class="thumbcaption" style="max-width: '.($match['width']-6).'px">';
 					if($match['detail']) {
 						$renderer->doc.= '<div class="magnify">';
 						$renderer->doc.= '<a class="internal" title="'.$this->getLang('enlarge').'" href="'.$match['detail'].'">';

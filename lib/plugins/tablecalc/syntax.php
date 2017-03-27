@@ -17,11 +17,11 @@ class syntax_plugin_tablecalc extends DokuWiki_Syntax_Plugin {
     function getInfo() {
         return array(
                 'author' => 'Gryaznov Sergey',
-                'email'  => 'stalker@os2.ru',
-                'date'   => '13-04-10',
+                'email'  => 'stalker@narezka.org',
+                'date'   => '09-02-17',
                 'name'   => 'Table Calculations Plugin',
                 'desc'   => 'Enables Excel style formulas in table syntax',
-                'url'    => 'http://narezka.ru/tablecalc',
+                'url'    => 'https://narezka.org/tablecalc',
                 );
     }
  
@@ -49,7 +49,7 @@ class syntax_plugin_tablecalc extends DokuWiki_Syntax_Plugin {
 		return array('formula'=>trim($match), 'divid'=>'__tablecalc'.$this->id_index);*/
 		$signs="-~=+*.,;\/!|&\(\)";
 		$pattern="/[$signs]*([a-zA-Z]+)\(/is";
-		$aAllowed=array("cell","row","col","sum","average","count","nop","round","range","label","min","max","calc","check","compare");
+		$aAllowed=array("cell","row","col","sum","average","count","countif","nop","round","range","label","min","max","calc","check","compare");
 		if (preg_match_all($pattern,$match,$aMatches)) {
 			foreach ($aMatches[1] as $f) {
 				if (!in_array(strtolower($f),$aAllowed)) {
@@ -64,14 +64,21 @@ class syntax_plugin_tablecalc extends DokuWiki_Syntax_Plugin {
 		$match=preg_replace("/#([^\(\);,]+)/","'\\1'",$match);
 		$match=preg_replace("/\(([a-z0-9_]+)\)/","('\\1')",$match);
 		$this->id_index++;
-		return array('formula'=>$match, 'divid'=>'__tablecalc'.$this->id_index);
+		//var_dump($this->id_index);
+		return array('formula'=>$match, 'divid'=>'__tablecalc'.$this->id_index,'idx'=>$this->id_index);
 
     }
  
     function render($mode, &$renderer, $data) {
 		global $INFO, $ID, $conf;
+		//var_dump($data);
 		if($mode == 'xhtml'){
-			$renderer->doc .= '<span id="'.$data['divid'].'"><script type="text/javascript" defer="defer">tablecalc("'.$data['divid'].'","'.$data['formula'].'");</script></span>';
+			if ($data["idx"]==$this->id_index) {
+				$final="setTimeout(tablecalc_final,0);";
+			} else {
+				$final="";
+			}
+			$renderer->doc .= '<span id="'.$data['divid'].'"><script type="text/javascript" defer="defer">tablecalc("'.$data['divid'].'","'.$data['formula'].'");'.$final.'</script></span>';
 			return true;
         }
 		return false;

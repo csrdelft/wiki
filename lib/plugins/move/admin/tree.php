@@ -108,12 +108,13 @@ class admin_plugin_move_tree extends DokuWiki_Admin_Plugin {
         $basedir = utf8_encodeFN(str_replace(':', '/', $base));
 
         $opts = array(
-            'pagesonly' => ($type == self::TYPE_PAGES),
-            'listdirs'  => true,
-            'listfiles' => true,
-            'sneakyacl' => $conf['sneaky_index'],
-            'showmsg'   => false,
-            'depth'     => 1
+            'pagesonly'  => ($type == self::TYPE_PAGES),
+            'listdirs'   => true,
+            'listfiles'  => true,
+            'sneakyacl'  => $conf['sneaky_index'],
+            'showmsg'    => false,
+            'depth'      => 1,
+            'showhidden' => true
         );
 
         $data = array();
@@ -145,6 +146,10 @@ class admin_plugin_move_tree extends DokuWiki_Admin_Plugin {
 
         if($item['id'] == '*') $item['id'] = '';
 
+        if ($item['id']) {
+            $ret .= '<input type="checkbox" /> ';
+        }
+
         // namespace or page?
         if($item['type'] == 'd') {
             $ret .= '<a href="' . $item['id'] . '" class="idx_dir">';
@@ -156,7 +161,8 @@ class admin_plugin_move_tree extends DokuWiki_Admin_Plugin {
             $ret .= '</a>';
         }
 
-        if($item['id']) $ret .= '<img src="'. DOKU_BASE .'lib/plugins/move/images/rename.png" />';
+        if($item['id']) $ret .= '<img class="rename" src="'. DOKU_BASE .'lib/plugins/move/images/rename.png" />';
+        else $ret .= '<img class="add" src="' . DOKU_BASE . 'lib/plugins/move/images/folder_add.png" />';
 
         return $ret;
     }

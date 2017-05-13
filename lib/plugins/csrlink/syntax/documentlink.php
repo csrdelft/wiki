@@ -8,6 +8,8 @@
  */
 
 // must be run within Dokuwiki
+use CsrDelft\model\documenten\Document;
+
 if (!defined('DOKU_INC')) die();
 
 if (!defined('DOKU_LF')) define('DOKU_LF', "\n");

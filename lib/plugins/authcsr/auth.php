@@ -7,6 +7,12 @@
  * @author  Gerrit Uitslag <klapinklapin@gmail.com>
  */
 // must be run within Dokuwiki
+use CsrDelft\model\entity\security\AuthenticationMethod;
+use CsrDelft\model\groepen\RechtenGroepenModel;
+use CsrDelft\model\ProfielModel;
+use CsrDelft\model\security\AccountModel;
+use CsrDelft\model\security\LoginModel;
+
 if (!defined('DOKU_INC')) {
 	die();
 }

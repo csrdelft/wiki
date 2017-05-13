@@ -1,5 +1,8 @@
 <?php
 
+use CsrDelft\view\CompressedLayout;
+use CsrDelft\view\menu\MainMenuView;
+
 class WikiHeader extends CompressedLayout {
 
 	public function __construct() {

@@ -10,6 +10,8 @@
  * @author     P.W.G. Brussee <brussee@live.nl>
  */
 // must be run within Dokuwiki
+use CsrDelft\view\JsonResponse;
+
 if (!defined('DOKU_INC')) {
 	die();
 }

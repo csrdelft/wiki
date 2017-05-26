@@ -10,6 +10,7 @@ if(!defined('DOKU_INC')) define('DOKU_INC',dirname(__FILE__).'/../../');
 if(!defined('NOSESSION')) define('NOSESSION',true); // we do not use a session or authentication here (better caching)
 if(!defined('DOKU_DISABLE_GZIP_OUTPUT')) define('DOKU_DISABLE_GZIP_OUTPUT',1); // we gzip ourself here
 if(!defined('NL')) define('NL',"\n");
+if(!defined('DOKU_UNITTEST_ASSUME_WINDOWS')) define('DOKU_UNITTEST_ASSUME_WINDOWS',0);
 require_once(DOKU_INC.'inc/init.php');
 
 // Main (don't run when UNIT test)

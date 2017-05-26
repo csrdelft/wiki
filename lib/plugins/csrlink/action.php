@@ -21,7 +21,12 @@ if (!defined('DOKU_INC')) {
  */
 class action_plugin_csrlink extends DokuWiki_Action_Plugin {
 
-	/**
+    public function __construct()
+    {
+        if (!defined('NOSESSION')) define('NOSESSION');
+    }
+
+    /**
 	 * Registers a callback function for a given event
 	 */
 	function register(Doku_Event_Handler $controller) {

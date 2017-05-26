@@ -23,7 +23,7 @@ class action_plugin_csrlink extends DokuWiki_Action_Plugin {
 
     public function __construct()
     {
-        if (!defined('NOSESSION')) define('NOSESSION');
+        if (!defined('NOSESSION')) define('NOSESSION', 1);
     }
 
     /**

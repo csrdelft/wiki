@@ -8,7 +8,6 @@
  */
 
 // must be run within Dokuwiki
-use CsrDelft\model\documenten\Document;
 
 if (!defined('DOKU_INC')) die();
 
@@ -105,10 +104,9 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
             return true;
         }
 
-        require_once 'model/documenten/Document.class.php';
         try{
-            $document=new Document((int)$documentid);
-            if($document->getID()===0) {
+            $document=\CsrDelft\model\documenten\DocumentModel::instance()->get($documentid);
+            if($document->id===0) {
                 throw new Exception('no document');
             }
         }catch(Exception $e){
@@ -118,9 +116,9 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
 
         // get a nice title
         if($title=='fname'){
-            $title = $document->getFileName();
+            $title = $document->filename;
         }elseif(!$title){
-            $title = $document->getNaam();
+            $title = $document->naam;
         }
 
         //DokuWiki mimetype icons

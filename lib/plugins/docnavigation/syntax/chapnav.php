@@ -38,13 +38,13 @@ class syntax_plugin_docnav_chapnav extends DokuWiki_Syntax_Plugin {
 //        $this->Lexer->addExitPattern('</FIXME>','plugin_docnav_chapnav');
 //    }
 
-    public function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, Doku_Handler $handler){
         $data = array();
 
         return $data;
     }
 
-    public function render($mode, &$renderer, $data) {
+    public function render($mode, Doku_Renderer $renderer, $data) {
         if($mode != 'xhtml') return false;
 
         return true;

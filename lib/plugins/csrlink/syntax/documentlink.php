@@ -72,7 +72,7 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
 	 * @param   Doku_Handler $handler The Doku_Handler object
 	 * @return  array Return an array with all data you want to use in render
 	 */
-	function handle($match, $state, $pos, &$handler){
+	function handle($match, $state, $pos, Doku_Handler $handler){
         $match = trim(substr($match,11,-2));
 
 
@@ -89,18 +89,19 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
 	 * created
 	 *
 	 * @param   $format   string        output format being rendered
-	 * @param   $R Doku_Renderer the current renderer object
+	 * @param   $renderer Doku_Renderer the current renderer object
 	 * @param   $data     array         data created by handler()
+	 *
 	 * @return  boolean                 rendered correctly?
 	 */
-	function render($format, Doku_Renderer $R, $data) {
+	function render($format, Doku_Renderer $renderer, $data) {
         global $auth;
         /** @var string $title */
         /** @var string $documentid */
         extract($data);
 
         if($format != 'xhtml' || is_null($auth) || !$auth instanceof auth_plugin_authcsr){
-            $R->cdata($title?$title:$documentid);
+					$renderer->cdata($title?$title:$documentid);
             return true;
         }
 
@@ -110,7 +111,7 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
                 throw new Exception('no document');
             }
         }catch(Exception $e){
-            $R->doc .='<span class="csrlink invalid" title="[[document>]] Ongeldig document (id:'.hsc($documentid).')">'.hsc($title?$title:$documentid).'</span>';
+					$renderer->doc .='<span class="csrlink invalid" title="[[document>]] Ongeldig document (id:'.hsc($documentid).')">'.hsc($title?$title:$documentid).'</span>';
             return true;
         }
 
@@ -127,7 +128,7 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
         $class = preg_replace('/[^_\-a-z0-9]+/i','_',$ext);
 
         //return html
-        $R->doc .= '<a href="'.$documenturl.'" class="documentlink csrlink_plugin mediafile mf_'.$class.'">'.hsc($title).'</a> <span class="documentlink csrlink_plugin size">('.CsrDelft\format_filesize((int)$document->getFileSize()).')</span>';
+		$renderer->doc .= '<a href="'.$documenturl.'" class="documentlink csrlink_plugin mediafile mf_'.$class.'">'.hsc($title).'</a> <span class="documentlink csrlink_plugin size">('.CsrDelft\format_filesize((int)$document->getFileSize()).')</span>';
 
         return true;
     }

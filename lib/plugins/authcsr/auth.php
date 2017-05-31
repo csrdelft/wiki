@@ -162,9 +162,11 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 * grps array   list of groups the user is in
 	 *
 	 * @param   string $useruid the user name
-	 * @return  array containing user data or false
+	 * @param bool $requireGroups
+	 *
+	 * @return array containing user data or false
 	 */
-	function getUserData($useruid) {
+	function getUserData($useruid, $requireGroups = true) {
 		global $conf;
 
 		if (AccountModel::isValidUid($useruid)) {

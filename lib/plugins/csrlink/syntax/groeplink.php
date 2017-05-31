@@ -38,7 +38,7 @@ class syntax_plugin_csrlink_groeplink extends DokuWiki_Syntax_Plugin {
 		$this->Lexer->addSpecialPattern('\[\[groep>.+?\]\]', $mode, 'plugin_csrlink_groeplink');
 	}
 
-	function handle($match, $state, $pos, &$handler) {
+	function handle($match, $state, $pos, Doku_Handler $handler) {
 		$match = trim(substr($match, 8, -2));
 
 
@@ -47,14 +47,14 @@ class syntax_plugin_csrlink_groeplink extends DokuWiki_Syntax_Plugin {
 		return compact('groepid', 'title');
 	}
 
-	function render($mode, &$R, $data) {
+	function render($mode, Doku_Renderer $renderer, $data) {
 		global $auth;
 		/** @var string $title */
 		/** @var string $groepid */
 		extract($data);
 
 		if ($mode != 'xhtml' || is_null($auth) || !$auth instanceof auth_plugin_authcsr) {
-			$R->cdata($title ? $title : $groepid);
+			$renderer->cdata($title ? $title : $groepid);
 			return true;
 		}
 
@@ -62,7 +62,7 @@ class syntax_plugin_csrlink_groeplink extends DokuWiki_Syntax_Plugin {
 			throw new Exception('geen groep');
 		} catch (Exception $e) {
 			// nothing found? render as text
-			$R->doc .='<span class="csrlink invalid" title="[[groep>]] Geen geldig groep-id (' . hsc($groepid) . ')">' . hsc($title ? $title : $groepid) . '</span>';
+			$renderer->doc .='<span class="csrlink invalid" title="[[groep>]] Geen geldig groep-id (' . hsc($groepid) . ')">' . hsc($title ? $title : $groepid) . '</span>';
 			return true;
 		}
 
@@ -72,7 +72,7 @@ class syntax_plugin_csrlink_groeplink extends DokuWiki_Syntax_Plugin {
 		}
 
 		//return html
-		$R->doc .= '<a href="' . $groep->getUrl() . '" class="groeplink groeplink_plugin">' . hsc($title) . '</a>';
+		$renderer->doc .= '<a href="' . $groep->getUrl() . '" class="groeplink groeplink_plugin">' . hsc($title) . '</a>';
 
 		return true;
 	}

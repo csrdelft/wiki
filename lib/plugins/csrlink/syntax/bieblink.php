@@ -36,7 +36,7 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addSpecialPattern('\[\[boek>.+?\]\]',$mode,'plugin_csrlink_bieblink');
     }
 
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         $match = trim(substr($match,7,-2));
 
 
@@ -51,7 +51,7 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
         return compact('boekid', 'title', 'options');
     }
 
-    function render($mode, &$R, $data) {
+    function render($mode, Doku_Renderer $renderer, $data) {
         global $auth;
         global $conf;
         /** @var string $title */
@@ -60,7 +60,7 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
         extract($data);
 
         if($mode != 'xhtml' || is_null($auth) || !$auth instanceof auth_plugin_authcsr){
-            $R->cdata($title?$title:$boekid);
+            $renderer->cdata($title?$title:$boekid);
             return true;
         }
 
@@ -75,7 +75,7 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
             $boek =    new BiebBoek($boekid);
         }catch(Exception $e){
             // nothing found? render as text
-            $R->doc .='<span class="csrlink invalid" title="[[boek>]] Geen geldig boek-id ('.hsc($boekid).')">'.hsc($title?$title:$boekid).'</span>';
+            $renderer->doc .='<span class="csrlink invalid" title="[[boek>]] Geen geldig boek-id ('.hsc($boekid).')">'.hsc($title?$title:$boekid).'</span>';
             return true;
         }
 
@@ -85,13 +85,13 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
         }
 
         //return html
-        $R->doc .= '<a class="bieblink groeplink_plugin" href="' . $boek->getUrl() . '" title="Boek: ' . hsc($boek->getTitel()) . ', Auteur: ' . hsc($boek->getAuteur()) . '">';
-        $R->doc .= '   <span title="' . $boek->getStatus() . ' boek" class="boekindicator ' . $boek->getStatus() . '">•</span>';
-        $R->doc .= '   <span class="titel">' . $title . '</span>';
+        $renderer->doc .= '<a class="bieblink groeplink_plugin" href="' . $boek->getUrl() . '" title="Boek: ' . hsc($boek->getTitel()) . ', Auteur: ' . hsc($boek->getAuteur()) . '">';
+        $renderer->doc .= '   <span title="' . $boek->getStatus() . ' boek" class="boekindicator ' . $boek->getStatus() . '">•</span>';
+        $renderer->doc .= '   <span class="titel">' . $title . '</span>';
         if($showauteur) {
-            $R->doc .= ' <span class="auteur">(' . hsc($boek->getAuteur()) . ')</span>';
+            $renderer->doc .= ' <span class="auteur">(' . hsc($boek->getAuteur()) . ')</span>';
         }
-        $R->doc .= '</a>';
+        $renderer->doc .= '</a>';
         return true;
     }
 }

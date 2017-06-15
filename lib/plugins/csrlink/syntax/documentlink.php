@@ -107,7 +107,7 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
 
         try{
             $document=\CsrDelft\model\documenten\DocumentModel::instance()->get($documentid);
-            if($document->id===0) {
+            if($document === false) {
                 throw new Exception('no document');
             }
         }catch(Exception $e){

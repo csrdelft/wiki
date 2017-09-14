@@ -7,7 +7,6 @@
  */
 
 if(!defined('DOKU_INC')) define('DOKU_INC',dirname(__FILE__).'/../../');
-if(!key_exists('DOKU_UNITTEST_ASSUME_WINDOWS', @$GLOBALS)) @$GLOBALS['DOKU_UNITTEST_ASSUME_WINDOWS'] = false;
 require_once(DOKU_INC.'inc/init.php');
 //close session
 session_write_close();

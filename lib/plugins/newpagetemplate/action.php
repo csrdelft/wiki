@@ -59,7 +59,7 @@ class action_plugin_newpagetemplate extends DokuWiki_Action_Plugin {
    *  turnermm02@shaw.ca     
    */
  
-  function pagefromtemplate(&$event, $param) {  
+  function pagefromtemplate(Doku_Event $event, $param) {  
     if($this->done) return;
     $this->done=true;
     
@@ -128,6 +128,9 @@ class action_plugin_newpagetemplate extends DokuWiki_Action_Plugin {
         // we need the callback to work around strftime's char limit
         $tpl = preg_replace_callback('/%./',create_function('$m','return strftime($m[0]);'),$tpl);
       }
+      if($this->getConf('skip_unset_macros')) {
+          $tpl = preg_replace("/@.*?@/ms","",$tpl);
+      }
 	  if($event->name == 'HTML_PAGE_FROMTEMPLATE') {
 	     $event->result=$tpl;
 	  }
@@ -138,12 +141,16 @@ class action_plugin_newpagetemplate extends DokuWiki_Action_Plugin {
     }
   }
 
-  function check_acl(&$event,$param) {
-    if(strlen(trim($_REQUEST['newpagetemplate']))>0) {
-       $pg = trim($_REQUEST['newpagetemplate'],':');
-       $auth =auth_quickaclcheck($pg);	
-	   if($auth < 4)   $this->allow = false;
-	   }
+  public function check_acl(Doku_Event $event,$param) {
+      global $INPUT;
+      if (!$INPUT->has('newpagetemplate')) {
+          return;
+      }
+
+      $pq = trim($INPUT->str('newpagetemplate'), ':');
+      if (auth_quickaclcheck($pq) < AUTH_CREATE) {
+          $this->allow = false;
+      }
    }
    
   function write_msg (&$event,$param) {

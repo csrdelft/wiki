@@ -122,6 +122,11 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
                     $data[$name][] = $value;
                 }
                 break;
+            case 'excludedusers':
+                foreach(preg_split('/\s*,\s*/', $value) as $value) {
+                    $data[$name][] = $value;
+                }
+                break;
             case 'excludedpages':
                 foreach(preg_split('/\s*,\s*/', $value) as $page) {
                     if(!empty($page)) {
@@ -160,7 +165,7 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
         if($mode == 'xhtml') {
             /* @var Doku_Renderer_xhtml $R */
             $R->info['cache'] = false;
-            $changes = $this->getChanges($data['count'], $data['ns'], $data['excludedpages'], $data['type'], $data['user'], $data['maxage']);
+            $changes = $this->getChanges($data['count'], $data['ns'], $data['excludedpages'], $data['type'], $data['user'], $data['maxage'], $data['excludedusers']);
             if(!count($changes)) return true;
 
             switch($data['render']) {
@@ -193,27 +198,36 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
      * @param int   $maxage
      * @return array
      */
-    protected function getChanges($num, $ns, $excludedpages, $type, $user, $maxage) {
+    protected function getChanges($num, $ns, $excludedpages, $type, $user, $maxage, $excludedusers) {
         global $conf;
         $changes = array();
         $seen = array();
         $count = 0;
-        $lines = @file($conf['changelog']);
+        $lines = array();
+
+        // Get global changelog
+        if(file_exists($conf['changelog']) && is_readable($conf['changelog'])) {
+            $lines = @file($conf['changelog']);
+        }
 
         // Merge media changelog
         if($this->getConf('listmedia')) {
-            $linesMedia = @file($conf['media_changelog']);
-            // Add a tag to identiy the media lines
-            foreach($linesMedia as $key => $value) {
-                $linesMedia[$key] = $value . "media";
+            if(file_exists($conf['media_changelog']) && is_readable($conf['media_changelog'])) {
+                $linesMedia = @file($conf['media_changelog']);
+                // Add a tag to identiy the media lines
+                foreach($linesMedia as $key => $value) {
+                    $value = parseChangelogLine($value);
+                    $value['extra'] = 'media';
+                    $linesMedia[$key] = implode("\t", $value)."\n";
+                }
+                $lines = array_merge($lines, $linesMedia);
             }
-            $lines = array_merge($lines, $linesMedia);
         }
 
         if(is_null($maxage)) $maxage = (int) $this->getConf('maxage');
 
         for($i = count($lines) - 1; $i >= 0; $i--) {
-            $change = $this->handleChangelogLine($lines[$i], $ns, $excludedpages, $type, $user, $maxage, $seen);
+            $change = $this->handleChangelogLine($lines[$i], $ns, $excludedpages, $type, $user, $maxage, $seen, $excludedusers);
             if($change !== false) {
                 $changes[] = $change;
                 // break when we have enough entries
@@ -245,7 +259,7 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
      * @param array  $seen
      * @return array|bool
      */
-    protected function handleChangelogLine($line, $ns, $excludedpages, $type, $user, $maxage, &$seen) {
+    protected function handleChangelogLine($line, $ns, $excludedpages, $type, $user, $maxage, &$seen, $excludedusers) {
         // split the line into parts
         $change = parseChangelogLine($line);
         if($change === false) return false;
@@ -263,7 +277,7 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
         $seen[$change['id']] = 1;
 
         // show only not existing pages for delete
-        if($change['type'] != 'D' && !page_exists($change['id'])) return false;
+        if($change['extra'] != 'media' && $change['type'] != 'D' && !page_exists($change['id'])) return false;
 
         // filter maxage
         if($maxage && $change['date'] < (time() - $maxage)) {
@@ -286,6 +300,13 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
         if(!empty($excludedpages)) {
             foreach($excludedpages as $page) {
                 if($change['id'] == $page) return false;
+            }
+        }
+
+        // exclude users
+        if(!empty($excludedusers)) {
+            foreach($excludedusers as $user) {
+                if($change['user'] == $user) return false;
             }
         }
 
@@ -324,6 +345,7 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
             $pagelist->setFlags($flags);
             $pagelist->startList();
             foreach($changes as $change) {
+                if ($change['extra'] == 'media') continue;
                 $page['id'] = $change['id'];
                 $page['date'] = $change['date'];
                 $page['user'] = $this->getUserName($change);
@@ -443,10 +465,15 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
         global $auth;
         if(!empty($change['user'])) {
             $user = $auth->getUserData($change['user']);
-            return $user['name'];
+            if (empty($user)) {
+                return $change['user'];
+            } else {
+                return $user['name'];
+            }
         } else {
             return $change['ip'];
         }
     }
 }
+
 

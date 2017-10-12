@@ -43,7 +43,7 @@ class helper_plugin_pagelist extends DokuWiki_Plugin {
      *
      * These can be overriden by plugins using this class
      */
-    function helper_plugin_pagelist() {
+    function __construct() {
         $this->style       = $this->getConf('style');
         $this->showheader  = $this->getConf('showheader');
         $this->showfirsthl = $this->getConf('showfirsthl');
@@ -175,7 +175,7 @@ class helper_plugin_pagelist extends DokuWiki_Plugin {
     /**
      * Sets the list header
      */
-    function startList() {
+    function startList($callerClass=NULL) {
 
         // table style
         switch ($this->style) {
@@ -193,6 +193,9 @@ class helper_plugin_pagelist extends DokuWiki_Plugin {
         }
         
         if($class) {
+            if ($callerClass) {
+                $class .= ' '.$callerClass;
+            }
             $this->doc = '<div class="table">'.DOKU_LF.'<table class="'.$class.'">'.DOKU_LF;
         } else {
             // Simplelist is enabled; Skip header and firsthl
@@ -299,7 +302,7 @@ class helper_plugin_pagelist extends DokuWiki_Plugin {
         }
 
         // reset defaults
-        $this->helper_plugin_pagelist();
+        $this->__construct();
 
         return $this->doc;
     }
@@ -320,8 +323,8 @@ class helper_plugin_pagelist extends DokuWiki_Plugin {
         else $class = 'wikilink2';
 
         // handle image and text titles
-        if ($this->page['image']) {
-            $title = '<img src="'.ml($this->page['image']).'" class="media"';
+        if ($this->page['titleimage']) {
+            $title = '<img src="'.ml($this->page['titleimage']).'" class="media"';
             if ($this->page['title']) $title .= ' title="'.hsc($this->page['title']).'"'.
                 ' alt="'.hsc($this->page['title']).'"';
             $title .= ' />';

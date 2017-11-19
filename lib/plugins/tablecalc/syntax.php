@@ -69,7 +69,7 @@ class syntax_plugin_tablecalc extends DokuWiki_Syntax_Plugin {
 
     }
  
-    function render($mode, &$renderer, $data) {
+    function render($mode, Doku_Renderer $renderer, $data) {
 		global $INFO, $ID, $conf;
 		//var_dump($data);
 		if($mode == 'xhtml'){

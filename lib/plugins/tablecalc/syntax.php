@@ -38,7 +38,7 @@ class syntax_plugin_tablecalc extends DokuWiki_Syntax_Plugin {
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID, $ACT, $INFO;
 		/*$keywords = array(' ', '~~', '=', 'alert', 'eval', 'for', 'function', 'if', 'else', 'instanceOf', 'while', 'let', 'new', 'this', 'import', 'var', 'export', 'do');
 		$match=strtolower($match);

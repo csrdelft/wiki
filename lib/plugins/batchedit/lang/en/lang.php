@@ -1,16 +1,16 @@
 <?php
 /**
- * english language file
+ * English language file
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * @author     Mykola Ostrovskyy <spambox03@mail.ru>
+ * @author     Mykola Ostrovskyy <dwpforge@gmail.com>
  */
 
-// settings must be present and set appropriately for the language
+// Settings must be present and set appropriately for the language
 $lang['encoding']   = 'utf-8';
 $lang['direction']  = 'ltr';
 
-// for admin plugins, the menu prompt to be displayed in the admin menu
+// For admin plugins, the menu prompt to be displayed in the admin menu
 // if set here, the plugin doesn't need to override the getMenuText() method
 $lang['menu'] = 'Batch Edit';
 
@@ -27,6 +27,9 @@ $lang['war_pagelock'] = 'Page {1} is locked by {2}.';
 
 $lang['btn_preview'] = 'Preview';
 $lang['btn_apply'] = 'Apply';
+
+$lang['inf_regexp'] = 'Example: /(Wiki)/m';
+$lang['inf_replace'] = 'Example: Doku$1';
 
 $lang['lbl_ns'] = 'Namespace';
 $lang['lbl_regexp'] = 'Regular expression';

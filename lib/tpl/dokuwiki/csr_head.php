@@ -6,7 +6,7 @@ use CsrDelft\view\menu\MainMenuView;
 class WikiHeader extends CompressedLayout {
 
 	public function __construct() {
-		parent::__construct('layout', new MainMenuView(), null);
+		parent::__construct(new MainMenuView(), null);
 		$this->addCompressedResources('wiki');
 	}
 
@@ -17,9 +17,6 @@ class WikiHeader extends CompressedLayout {
 	public function view() {
 		foreach ($this->getStylesheets() as $sheet) {
 			echo '<link rel="stylesheet" href="' . $sheet . '" type="text/css" />';
-		}
-		foreach ($this->getScripts() as $script) {
-			echo '<script type="text/javascript" src="' . $script . '"></script>';
 		}
 	}
 

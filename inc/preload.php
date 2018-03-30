@@ -15,10 +15,19 @@
 // you can overwrite the $config_cascade to your liking
 //$config_cascade = array(
 //);
+use Illuminate\Support\Facades\Route;
 
 /**
  * Initialize C.S.R. stek essentials
  */
-require_once 'configuratie.include.php';
+require_once __DIR__ . '/../inc/common.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
+global $app;
+$app = require_once __DIR__ . '/../../../bootstrap/app.php';
+
+/** @var \Illuminate\Contracts\Http\Kernel $kernel */
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+$response = $kernel->handle($request = Illuminate\Http\Request::capture());
+
 // csrdelft.nl laad alle nl locale settings, een uitzondering voor de wiki:
 setlocale(LC_NUMERIC, 'en_US.UTF-8');

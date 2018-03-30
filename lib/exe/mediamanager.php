@@ -5,7 +5,7 @@
     // for multi uploader:
     @ini_set('session.use_only_cookies',0);
 
-    require_once(DOKU_INC.'inc/init.php');
+    require_once(DOKU_INC . 'inc/init.php');
 
     global $INPUT;
     global $lang;

@@ -7,7 +7,7 @@
  */
 
 if(!defined('DOKU_INC')) define('DOKU_INC',dirname(__FILE__).'/../../');
-require_once(DOKU_INC.'inc/init.php');
+require_once(DOKU_INC . 'inc/init.php');
 //close session
 session_write_close();
 
@@ -231,7 +231,7 @@ function ajax_medialist(){
 function ajax_mediadetails(){
     global $IMG, $JUMPTO, $REV, $fullscreen, $INPUT;
     $fullscreen = true;
-    require_once(DOKU_INC.'lib/exe/mediamanager.php');
+    require_once(DOKU_INC . 'lib/exe/mediamanager.php');
 
     $image = '';
     if ($INPUT->has('image')) $image = cleanID($INPUT->str('image'));

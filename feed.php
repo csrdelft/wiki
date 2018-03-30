@@ -10,7 +10,7 @@
  */
 
 if(!defined('DOKU_INC')) define('DOKU_INC', dirname(__FILE__).'/');
-require_once(DOKU_INC.'inc/init.php');
+require_once(DOKU_INC . 'inc/init.php');
 
 //close session
 session_write_close();
@@ -325,7 +325,7 @@ function rss_buildItems(&$rss, &$data, $opt) {
                         }
 
                     } else {
-                        require_once(DOKU_INC.'inc/DifferenceEngine.php');
+                        require_once(DOKU_INC . 'inc/DifferenceEngine.php');
                         $pagelog = new PageChangeLog($id);
                         $revs = $pagelog->getRevisions(0, 1);
                         $rev  = $revs[0];
@@ -479,7 +479,7 @@ function rssRecentChanges($opt) {
  * @author Andreas Gohr <andi@splitbrain.org>
  */
 function rssListNamespace($opt) {
-    require_once(DOKU_INC.'inc/search.php');
+    require_once(DOKU_INC . 'inc/search.php');
     global $conf;
 
     $ns = ':'.cleanID($opt['namespace']);
@@ -504,7 +504,7 @@ function rssListNamespace($opt) {
 function rssSearch($opt) {
     if(!$opt['search_query']) return array();
 
-    require_once(DOKU_INC.'inc/fulltext.php');
+    require_once(DOKU_INC . 'inc/fulltext.php');
     $data = ft_pageSearch($opt['search_query'], $poswords);
     $data = array_keys($data);
 

@@ -83,7 +83,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 
 		// als er een gebruiker is gegeven willen we graag proberen in te loggen via inlogformulier
 		if (!empty($user)) {
-			if (LoginModel::instance()->login(strval($user), strval($pass))) {
+			if (Auth::attempt(['uid' => $user, 'password' => $pass])) {
 				//success
 			} else {
 				//invalid credentials - log off
@@ -91,7 +91,13 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 				auth_logoff();
 				return false;
 			}
-		}
+		} else if (isset($_SESSION[DOKU_COOKIE]['auth']['user'])) {
+		    // Er is een sessie
+		    $user = $_SESSION[DOKU_COOKIE]['auth']['user'];
+		    $account = new \App\Models\Account;
+		    $account->uid = $user;
+		    Auth::login($account);
+        }
 
 		$wiki = array(
             AuthenticationMethod::cookie_token,
@@ -103,7 +109,6 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 		if (LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', $wiki)
 				OR ( LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getTypeOptions()) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
 		) {
-
 			// okay we're logged in - set the globals
 			$account = LoginModel::getAccount();
 			$USERINFO['name'] = ProfielModel::getNaam($account->uid, 'civitas');
@@ -148,7 +153,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 * @see     auth_logoff()
 	 */
 	function logOff() {
-		LoginModel::instance()->logout();
+	    Auth::logout();
 	}
 
 	/**

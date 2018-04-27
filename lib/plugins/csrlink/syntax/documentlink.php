@@ -128,7 +128,7 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
         $class = preg_replace('/[^_\-a-z0-9]+/i','_',$ext);
 
         //return html
-		$renderer->doc .= '<a href="'.$documenturl.'" class="documentlink csrlink_plugin mediafile mf_'.$class.'">'.hsc($title).'</a> <span class="documentlink csrlink_plugin size">('.CsrDelft\format_filesize((int)$document->filesize).')</span>';
+		$renderer->doc .= '<a href="'.$documenturl.'" class="documentlink csrlink_plugin mediafile mf_'.$class.'">'.hsc($title).'</a> <span class="documentlink csrlink_plugin size">('.format_filesize((int)$document->filesize).')</span>';
 
         return true;
     }

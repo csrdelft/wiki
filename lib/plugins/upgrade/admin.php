@@ -11,6 +11,9 @@ if(!defined('DOKU_INC')) die();
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 require_once DOKU_PLUGIN.'admin.php';
 require_once DOKU_PLUGIN.'upgrade/VerboseTarLib.class.php';
+require_once DOKU_PLUGIN.'upgrade/HTTPClient.php';
+
+use dokuwiki\plugin\upgrade\DokuHTTPClient;
 
 class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     private $tgzurl;
@@ -48,14 +51,6 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
         $next = false;
 
         echo '<h1>'.$this->getLang('menu').'</h1>';
-
-        global $conf;
-        if($conf['safemodehack']) {
-            $abrt = false;
-            $next = false;
-            echo $this->locale_xhtml('safemode');
-            return;
-        }
 
         $this->_say('<div id="plugin__upgrade">');
         // enable auto scroll
@@ -290,7 +285,7 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
         }
 
         // check if PHP is up to date
-        $minphp = '5.3.3';
+        $minphp = '5.6';
         if(version_compare(phpversion(), $minphp, '<')) {
             $this->_warn($this->getLang('vs_php'), $minphp, phpversion());
             $ok = false;
@@ -303,6 +298,9 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
      * Redirect to the start page
      */
     private function _step_done() {
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
         echo $this->getLang('finish');
         echo "<script type='text/javascript'>location.href='".DOKU_URL."';</script>";
     }
@@ -416,6 +414,13 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
             if(!$line) continue;
             $file = DOKU_INC.$line;
             if(!file_exists($file)) continue;
+
+            // check that the given file is an case sensitive match
+            if(basename(realpath($file)) != basename($file)) {
+                $this->_say($this->getLang('rm_mismatch'), hsc($line));
+                continue;
+            }
+
             if((is_dir($file) && $this->_rdel($file)) ||
                 @unlink($file)
             ) {
@@ -485,6 +490,11 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
                     } else {
                         // check dir
                         if(io_mkdir_p(dirname($to))) {
+                            // remove existing (avoid case sensitivity problems)
+                            if(file_exists($to) && !@unlink($to)) {
+                                $this->_warn('<b>'.$this->getLang('tv_nodel').'</b>', hsc("$dir/$file"));
+                                $ok = false;
+                            }
                             // copy
                             if(!copy($from, $to)) {
                                 $this->_warn('<b>'.$this->getLang('tv_nocopy').'</b>', hsc("$dir/$file"));

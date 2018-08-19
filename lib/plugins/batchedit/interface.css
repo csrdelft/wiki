@@ -1,0 +1,275 @@
+/*
+ * Tooltip
+ */
+.ui-widget.ui-widget-content.be-tooltip {
+    padding: 2px 8px 2px 8px;
+    font-size: 90%;
+    color: var(--batchedit-text);
+    background-color: var(--batchedit-background);
+    border-left: 1px solid var(--batchedit-border);
+    box-shadow: 0 0 0.5em #999;
+}
+
+/*
+ * Global styles
+ */
+#batchedit table {
+    border: 0;
+}
+
+#batchedit td {
+    border: 0;
+}
+
+#batchedit .be-checkbox {
+    margin: 0.3em 0;
+}
+
+#batchedit .be-radiogroup {
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+}
+
+#batchedit .be-radiobtn {
+    margin: 0.3em 0;
+    padding-left: 1em;
+}
+
+#batchedit .be-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 24px;
+}
+
+#batchedit .be-action svg {
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+    fill: #ccc;
+}
+
+#batchedit .be-action svg:hover {
+    fill: var(--batchedit-link);
+}
+
+/*
+ * Messages
+ */
+#batchedit #be-messages {
+    margin-bottom: 1em;
+}
+
+/*
+ * Total statistics
+ */
+#batchedit #be-totalstats {
+    position: relative;
+    font-size: 120%;
+    font-weight: bold;
+    margin: 0 -0.2em 0 -0.5em;
+}
+
+#batchedit #be-totalstats div {
+    position: relative;
+    padding: 0 0.2em 1.2em 0.5em;
+    background-color: var(--batchedit-background);
+}
+
+#batchedit #be-totalstats div.be-floater {
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    padding: 1em 0.2em 1.2em 0.5em;
+    box-shadow: 0 0.5em 0.5em -0.5em #999;
+}
+
+#batchedit .be-apply:hover label {
+    color: var(--batchedit-link);
+}
+
+/*
+ * Matches
+ */
+#batchedit .be-file {
+    position: relative;
+    padding-left: 0.5em;
+    margin-bottom: 1.5em;
+    border-left: 1px solid var(--batchedit-border);
+}
+
+#batchedit .be-file .be-stats {
+    font-size: 120%;
+    font-weight: bold;
+    margin-bottom: 0.7em;
+}
+
+#batchedit .be-match {
+    padding: 0.3em;
+    margin-bottom: 0.5em;
+    background-color: var(--batchedit-background-alt);
+}
+
+#batchedit .be-match .be-matchid {
+    font-weight: bold;
+}
+
+#batchedit .be-match table {
+    width: 100%;
+    border: 0;
+    margin: 0.3em 0 0 0;
+}
+
+#batchedit .be-match td.be-text {
+    font-family: "Courier New", monospace;
+    font-size: 8pt;
+    text-align: left;
+    white-space: pre-wrap;
+    width: 49%;
+    padding: 0.3em;
+    border: 1px dashed var(--batchedit-border);
+}
+
+#batchedit .be-match td.be-arrow {
+    position: relative;
+    width: 2%;
+    border: 0;
+}
+
+#batchedit .be-match td.be-arrow svg {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left:-3px;
+    margin-top:-20px;
+    width: 8px;
+    height: 40px;
+    stroke: var(--batchedit-text);
+}
+
+#batchedit .be-match .be-preview {
+    background-color: #ff9;
+}
+
+#batchedit .be-match .be-replaced {
+    background-color: #ff9;
+}
+
+#batchedit .be-match .be-applied {
+    background-color: #6f9;
+}
+
+/*
+ * Main form
+ */
+#batchedit #be-mainform {
+    position: relative;
+    margin-top: 1em;
+}
+
+#batchedit #be-mainform > div:first-child {
+    display: flex;
+    margin-bottom: 1.5em;
+}
+
+#batchedit #be-mainform table {
+    flex-grow: 1;
+    margin: 0;
+}
+
+#batchedit #be-mainform td {
+    border: 0;
+}
+
+#batchedit #be-mainform td.be-title {
+    width: 1%;
+    padding-top: 0.6em;
+    padding-right: 1em;
+    font-weight: bold;
+    white-space:nowrap;
+}
+
+#batchedit #be-mainform td.be-edit {
+    width: 99%;
+    padding-right: 1em;
+}
+
+#batchedit #be-mainform td.be-edit .be-edit {
+    font-family: "Courier New", monospace;
+    font-size: 10pt;
+    padding: 0.3em 0.5em;
+    width: 100%;
+}
+
+#batchedit #be-mainform textarea.be-edit {
+    min-height: 4em;
+    resize: vertical;
+    white-space: pre;
+}
+
+#batchedit #be-mainform #be-submitbar {
+    display: flex;
+}
+
+#batchedit #be-mainform #be-progressbar {
+    display: none;
+    flex-grow: 1;
+}
+
+#batchedit #be-mainform #be-progresswrap {
+    flex-grow: 1;
+    align-self: center;
+    margin-right: 1em;
+    padding: 2px;
+    border: 1px solid var(--batchedit-border);
+}
+
+#batchedit #be-mainform #be-progress {
+    width: 0;
+    padding-left: 0.3em;
+    word-wrap: normal;
+    white-space: pre;
+    font-style: italic;
+    background-color: var(--batchedit-background-alt);
+}
+
+#batchedit #be-mainform .be-button {
+    padding: 0.5em 1.2em;
+    font-weight: bold;
+}
+
+#batchedit #be-mainform .be-submit {
+    padding: 0.5em 1.2em;
+    margin-right: 1em;
+    font-weight: bold;
+}
+
+/*
+ * Options
+ */
+#batchedit #be-options {
+    padding-left: 1em;
+    border-left: 1px solid var(--batchedit-border);
+}
+
+#batchedit #be-extoptions {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.5em 1em 0.8em 1em;
+    background-color: var(--batchedit-background);
+    box-shadow: 0 0 0.5em #999;
+}
+
+#batchedit #be-ctxcharsedit, #batchedit #be-ctxlinesedit {
+    width: 3em;
+    padding: 0 0.2em;
+    text-align: right;
+}
+
+#batchedit #be-searchmaxedit {
+    width: 4em;
+    padding: 0 0.2em;
+    text-align: right;
+}

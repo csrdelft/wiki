@@ -224,7 +224,9 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
             }
         }
 
-        if(is_null($maxage)) $maxage = (int) $this->getConf('maxage');
+        if(is_null($maxage)) {
+            $maxage = (int) $conf['recent_days'] * 60 * 60 * 24;
+        }
 
         for($i = count($lines) - 1; $i >= 0; $i--) {
             $change = $this->handleChangelogLine($lines[$i], $ns, $excludedpages, $type, $user, $maxage, $seen, $excludedusers);
@@ -408,7 +410,7 @@ class syntax_plugin_changes extends DokuWiki_Syntax_Plugin {
             $R->listitem_open(1);
             $R->listcontent_open();
             if(trim($change['extra']) == 'media') {
-                $R->internalmedia(':' . $change['id'], null, null, false, 'navigation');
+                $R->internalmedia(':' . $change['id'], null, null, null, null, null, 'linkonly');
             } else {
                 $R->internallink(':' . $change['id'], null, null, false, 'navigation');
             }

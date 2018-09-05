@@ -20,5 +20,13 @@
  * Initialize C.S.R. stek essentials
  */
 require_once 'configuratie.include.php';
+
 // csrdelft.nl laad alle nl locale settings, een uitzondering voor de wiki:
 setlocale(LC_NUMERIC, 'en_US.UTF-8');
+
+define('DOKU_SESSION_NAME', 'CSRSESSID');
+define('DOKU_SESSION_LIFETIME', '');
+define('DOKU_SESSION_PATH', '/');
+define('DOKU_SESSION_DOMAIN', CSR_DOMAIN);
+
+session_save_path(SESSION_PATH);

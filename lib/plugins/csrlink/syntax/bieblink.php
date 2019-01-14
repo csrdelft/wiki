@@ -8,7 +8,7 @@
  */
 
 // must be run within Dokuwiki
-use CsrDelft\model\bibliotheek\BiebBoek;
+use \CsrDelft\model\entity\bibliotheek\Boek;
 
 if (!defined('DOKU_INC')) die();
 
@@ -70,9 +70,8 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
             $showauteur = false;
         }
 
-        require_once 'model/bibliotheek/BiebBoek.php';
         try{
-            $boek =    new BiebBoek($boekid);
+            $boek =    new Boek($boekid);
         }catch(Exception $e){
             // nothing found? render as text
             $renderer->doc .='<span class="csrlink invalid" title="[[boek>]] Geen geldig boek-id ('.hsc($boekid).')">'.hsc($title?$title:$boekid).'</span>';

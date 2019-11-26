@@ -15,11 +15,19 @@
 // you can overwrite the $config_cascade to your liking
 //$config_cascade = array(
 //);
+use CsrDelft\common\ContainerFacade;
+use CsrDelft\Kernel;
+use Symfony\Component\Debug\Debug;
 
 /**
  * Initialize C.S.R. stek essentials
  */
 require_once 'configuratie.include.php';
+
+// Initialiseer Container.
+$kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
+$kernel->boot();
+ContainerFacade::init($kernel->getContainer());
 
 // csrdelft.nl laad alle nl locale settings, een uitzondering voor de wiki:
 setlocale(LC_NUMERIC, 'en_US.UTF-8');

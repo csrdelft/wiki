@@ -106,7 +106,8 @@ class syntax_plugin_csrlink_documentlink extends DokuWiki_Syntax_Plugin {
         }
 
         try{
-            $document=\CsrDelft\model\documenten\DocumentModel::instance()->get($documentid);
+        	$documentRepository = \CsrDelft\common\ContainerFacade::getContainer()->get(\CsrDelft\repository\documenten\DocumentRepository::class);
+            $document=$documentRepository->find($documentid);
             if($document === false) {
                 throw new Exception('no document');
             }

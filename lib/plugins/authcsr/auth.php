@@ -108,7 +108,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 			$account = LoginModel::getAccount();
 			$USERINFO['name'] = ProfielModel::getNaam($account->uid, 'civitas');
 			$USERINFO['mail'] = $account->email;
-			$USERINFO['grps'] = RechtenGroepenModel::getWikiToegang($account->uid);
+			$USERINFO['grps'] = RechtenGroepenModel::instance()->getWikiToegang($account->uid);
 			// always add the default group to the list of groups
 			if (!in_array($conf['defaultgroup'], $USERINFO['grps'])) {
 				$USERINFO['grps'][] = $conf['defaultgroup'];
@@ -174,7 +174,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 			if ($profiel) {
 				$info['name'] = $profiel->getNaam();
 				$info['mail'] = $profiel->getPrimaryEmail();
-				$info['grps'] = RechtenGroepenModel::getWikiToegang($useruid);
+				$info['grps'] = RechtenGroepenModel::instance()->getWikiToegang($useruid);
 				// always add the default group to the list of groups
 				if (!in_array($conf['defaultgroup'], $info['grps']) AND $useruid != 'x999') {
 					$info['grps'][] = $conf['defaultgroup'];

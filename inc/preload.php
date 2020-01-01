@@ -36,5 +36,3 @@ define('DOKU_SESSION_NAME', 'CSRSESSID');
 define('DOKU_SESSION_LIFETIME', '');
 define('DOKU_SESSION_PATH', '/');
 define('DOKU_SESSION_DOMAIN', CSR_DOMAIN);
-
-session_save_path(SESSION_PATH);

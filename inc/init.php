@@ -228,15 +228,15 @@ mail_setup();
  */
 function init_session() {
     global $conf;
-    session_name(DOKU_SESSION_NAME);
-    session_set_cookie_params(DOKU_SESSION_LIFETIME, DOKU_SESSION_PATH, DOKU_SESSION_DOMAIN, ($conf['securecookie'] && is_ssl()), true);
+    @session_name(DOKU_SESSION_NAME);
+    @session_set_cookie_params(DOKU_SESSION_LIFETIME, DOKU_SESSION_PATH, DOKU_SESSION_DOMAIN, ($conf['securecookie'] && is_ssl()), true);
 
     // make sure the session cookie contains a valid session ID
     if(isset($_COOKIE[DOKU_SESSION_NAME]) && !preg_match('/^[-,a-zA-Z0-9]{22,256}$/', $_COOKIE[DOKU_SESSION_NAME])) {
         unset($_COOKIE[DOKU_SESSION_NAME]);
     }
 
-    session_start();
+    @session_start();
 }
 
 

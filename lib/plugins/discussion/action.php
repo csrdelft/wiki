@@ -422,7 +422,11 @@ class action_plugin_discussion extends DokuWiki_Action_Plugin{
         }
 
         // show discussion wrapper only on certain circumstances
-        $cnt = count($data['comments']);
+				if (is_array($data['comments'])) {
+						$cnt = count($data['comments']);
+				} else {
+						$cnt = 0;
+				}
         $keys = @array_keys($data['comments']);
         $show = false;
         if($cnt > 1 || ($cnt == 1 && $data['comments'][$keys[0]]['show'] == 1) || $this->getConf('allowguests') || isset($_SERVER['REMOTE_USER'])) {
@@ -458,9 +462,9 @@ class action_plugin_discussion extends DokuWiki_Action_Plugin{
             ptln('</div>', 2); // level2 hfeed
             ptln('</div>'); // comment_wrapper
         }
-        
+
         // check for toggle print configuration
-        if($this->getConf('visibilityButton')) {           
+        if($this->getConf('visibilityButton')) {
             // print the hide/show discussion section button
             $this->_print_toggle_button();
         }
@@ -933,7 +937,7 @@ class action_plugin_discussion extends DokuWiki_Action_Plugin{
         ptln('<input type="submit" id="discussion__btn_toggle_visibility" title="Toggle Visibiliy" class="button" value="'.$this->getLang('toggle_display').'">');
         ptln('</div>');
     }
-    
+
     /**
      * Outputs the comment form
      */

@@ -9,9 +9,9 @@
 // must be run within Dokuwiki
 use CsrDelft\model\entity\security\AuthenticationMethod;
 use CsrDelft\model\groepen\RechtenGroepenModel;
-use CsrDelft\model\ProfielModel;
 use CsrDelft\model\security\AccountModel;
 use CsrDelft\model\security\LoginModel;
+use CsrDelft\repository\ProfielRepository;
 
 if (!defined('DOKU_INC')) {
 	die();
@@ -106,7 +106,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 
 			// okay we're logged in - set the globals
 			$account = LoginModel::getAccount();
-			$USERINFO['name'] = ProfielModel::getNaam($account->uid, 'civitas');
+			$USERINFO['name'] = ProfielRepository::getNaam($account->uid, 'civitas');
 			$USERINFO['mail'] = $account->email;
 			$USERINFO['grps'] = RechtenGroepenModel::instance()->getWikiToegang($account->uid);
 			// always add the default group to the list of groups
@@ -170,7 +170,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 		global $conf;
 
 		if (AccountModel::isValidUid($useruid)) {
-			$profiel = ProfielModel::get($useruid);
+			$profiel = ProfielRepository::get($useruid);
 			if ($profiel) {
 				$info['name'] = $profiel->getNaam();
 				$info['mail'] = $profiel->getPrimaryEmail();

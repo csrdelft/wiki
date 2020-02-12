@@ -8,7 +8,9 @@
  */
 
 // must be run within Dokuwiki
-use \CsrDelft\model\entity\bibliotheek\Boek;
+use CsrDelft\common\ContainerFacade;
+use CsrDelft\entity\bibliotheek\Boek;
+use CsrDelft\repository\bibliotheek\BoekRepository;
 
 if (!defined('DOKU_INC')) die();
 
@@ -71,7 +73,7 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
         }
 
         try{
-            $boek =    new Boek($boekid);
+            $boek = ContainerFacade::getContainer()->get(BoekRepository::class)->find($boekid);
         }catch(Exception $e){
             // nothing found? render as text
             $renderer->doc .='<span class="csrlink invalid" title="[[boek>]] Geen geldig boek-id ('.hsc($boekid).')">'.hsc($title?$title:$boekid).'</span>';
@@ -80,15 +82,15 @@ class syntax_plugin_csrlink_bieblink extends DokuWiki_Syntax_Plugin {
 
         // get a nice title
         if(!$title){
-            $title = $boek->getTitel();
+            $title = $boek->titel;
         }
 
         //return html
-        $renderer->doc .= '<a class="bieblink groeplink_plugin" href="' . $boek->getUrl() . '" title="Boek: ' . hsc($boek->getTitel()) . ', Auteur: ' . hsc($boek->getAuteur()) . '">';
+        $renderer->doc .= '<a class="bieblink groeplink_plugin" href="' . $boek->getUrl() . '" title="Boek: ' . hsc($boek->titel) . ', Auteur: ' . hsc($boek->auteur) . '">';
         $renderer->doc .= '   <span title="' . $boek->getStatus() . ' boek" class="boekindicator ' . $boek->getStatus() . '">•</span>';
         $renderer->doc .= '   <span class="titel">' . $title . '</span>';
         if($showauteur) {
-            $renderer->doc .= ' <span class="auteur">(' . hsc($boek->getAuteur()) . ')</span>';
+            $renderer->doc .= ' <span class="auteur">(' . hsc($boek->auteur) . ')</span>';
         }
         $renderer->doc .= '</a>';
         return true;

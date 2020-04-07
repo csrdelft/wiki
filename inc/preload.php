@@ -17,12 +17,11 @@
 //);
 use CsrDelft\common\ContainerFacade;
 use CsrDelft\Kernel;
-use Symfony\Component\Debug\Debug;
 
 /**
  * Initialize C.S.R. stek essentials
  */
-require_once 'configuratie.include.php';
+require_once __DIR__ . '/../../../lib/configuratie.include.php';
 
 // Initialiseer Container.
 $kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);

@@ -9,9 +9,9 @@
 // must be run within Dokuwiki
 use CsrDelft\model\entity\security\AuthenticationMethod;
 use CsrDelft\model\groepen\RechtenGroepenModel;
-use CsrDelft\model\security\AccountModel;
 use CsrDelft\model\security\LoginModel;
 use CsrDelft\repository\ProfielRepository;
+use CsrDelft\repository\security\AccountRepository;
 
 if (!defined('DOKU_INC')) {
 	die();
@@ -169,7 +169,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	function getUserData($useruid, $requireGroups = true) {
 		global $conf;
 
-		if (AccountModel::isValidUid($useruid)) {
+		if (AccountRepository::isValidUid($useruid)) {
 			$profiel = ProfielRepository::get($useruid);
 			if ($profiel) {
 				$info['name'] = $profiel->getNaam();

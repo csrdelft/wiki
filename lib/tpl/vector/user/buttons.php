@@ -21,6 +21,7 @@
  * @link http://www.dokuwiki.org/devel:configuration
  */
 //check if we are running within the DokuWiki environment
+use CsrDelft\common\ContainerFacade;
 use CsrDelft\model\security\LoginModel;
 
 if (!defined("DOKU_INC")) {
@@ -45,7 +46,7 @@ $rss["rss"]["title"] = "De laatste wikiwijzigingen (alleen van publieke pagina's
 $rss["rss"]["nofollow"] = true;
 
 if (auth_quickaclcheck('hoofdpagina') >= AUTH_READ) {
-	if (LoginModel::instance()) {
+	if (ContainerFacade::getContainer()->has(LoginModel::class)) {
 		$privateToken = LoginModel::getAccount()->private_token;
 
 		// tip for first-time users

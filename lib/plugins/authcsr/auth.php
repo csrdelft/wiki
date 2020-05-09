@@ -9,8 +9,8 @@
 // must be run within Dokuwiki
 use CsrDelft\common\ContainerFacade;
 use CsrDelft\model\entity\security\AuthenticationMethod;
-use CsrDelft\model\groepen\RechtenGroepenModel;
 use CsrDelft\model\security\LoginModel;
+use CsrDelft\repository\groepen\RechtenGroepenRepository;
 use CsrDelft\repository\ProfielRepository;
 use CsrDelft\repository\security\AccountRepository;
 
@@ -109,7 +109,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 			$account = LoginModel::getAccount();
 			$USERINFO['name'] = ProfielRepository::getNaam($account->uid, 'civitas');
 			$USERINFO['mail'] = $account->email;
-			$USERINFO['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenModel::class)->getWikiToegang($account->uid);
+			$USERINFO['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenRepository::class)->getWikiToegang($account->uid);
 			// always add the default group to the list of groups
 			if (!in_array($conf['defaultgroup'], $USERINFO['grps'])) {
 				$USERINFO['grps'][] = $conf['defaultgroup'];
@@ -175,7 +175,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 			if ($profiel) {
 				$info['name'] = $profiel->getNaam();
 				$info['mail'] = $profiel->getPrimaryEmail();
-				$info['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenModel::class)->getWikiToegang($useruid);
+				$info['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenRepository::class)->getWikiToegang($useruid);
 				// always add the default group to the list of groups
 				if (!in_array($conf['defaultgroup'], $info['grps']) AND $useruid != 'x999') {
 					$info['grps'][] = $conf['defaultgroup'];

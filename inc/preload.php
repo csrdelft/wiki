@@ -21,12 +21,8 @@ use CsrDelft\Kernel;
 /**
  * Initialize C.S.R. stek essentials
  */
-require_once __DIR__ . '/../../../lib/configuratie.include.php';
-
-// Initialiseer Container.
-$kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
+$kernel = require __DIR__ . '/../../../lib/configuratie.include.php';
 $kernel->boot();
-ContainerFacade::init($kernel->getContainer());
 
 // csrdelft.nl laad alle nl locale settings, een uitzondering voor de wiki:
 setlocale(LC_NUMERIC, 'en_US.UTF-8');

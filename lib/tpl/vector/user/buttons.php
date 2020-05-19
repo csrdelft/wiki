@@ -22,7 +22,7 @@
  */
 //check if we are running within the DokuWiki environment
 use CsrDelft\common\ContainerFacade;
-use CsrDelft\model\security\LoginModel;
+use CsrDelft\service\security\LoginService;
 
 if (!defined("DOKU_INC")) {
 	die();
@@ -46,12 +46,12 @@ $rss["rss"]["title"] = "De laatste wikiwijzigingen (alleen van publieke pagina's
 $rss["rss"]["nofollow"] = true;
 
 if (auth_quickaclcheck('hoofdpagina') >= AUTH_READ) {
-	if (ContainerFacade::getContainer()->has(LoginModel::class)) {
-		$privateToken = LoginModel::getAccount()->private_token;
+	if (ContainerFacade::getContainer()->has(LoginService::class)) {
+		$privateToken = LoginService::getAccount()->private_token;
 
 		// tip for first-time users
 		if ($privateToken == '') {
-			$privateToken = 'Maak_EERST_een_sleutel_aan_met_knop_[Nieuwe_aanvragen]_op:_' . CSR_ROOT . '/profiel/' . LoginModel::getUid() . '#forum';
+			$privateToken = 'Maak_EERST_een_sleutel_aan_met_knop_[Nieuwe_aanvragen]_op:_' . CSR_ROOT . '/profiel/' . LoginService::getUid() . '#forum';
 		}
 	} else {
 		$privateToken = 'C.S.R. backend niet beschikbaar';

@@ -9,10 +9,10 @@
 // must be run within Dokuwiki
 use CsrDelft\common\ContainerFacade;
 use CsrDelft\model\entity\security\AuthenticationMethod;
-use CsrDelft\model\security\LoginModel;
 use CsrDelft\repository\groepen\RechtenGroepenRepository;
 use CsrDelft\repository\ProfielRepository;
 use CsrDelft\repository\security\AccountRepository;
+use CsrDelft\service\security\LoginService;
 
 if (!defined('DOKU_INC')) {
 	die();
@@ -84,7 +84,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 
 		// als er een gebruiker is gegeven willen we graag proberen in te loggen via inlogformulier
 		if (!empty($user)) {
-			if (ContainerFacade::getContainer()->get(LoginModel::class)->login(strval($user), strval($pass))) {
+			if (ContainerFacade::getContainer()->get(LoginService::class)->login(strval($user), strval($pass))) {
 				//success
 			} else {
 				//invalid credentials - log off
@@ -101,12 +101,12 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
         );
 
 		// als ingelogd genoeg permissies heeft gegevens ophalen en bewaren
-		if (LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', $wiki)
-				OR ( LoginModel::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getTypeOptions()) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
+		if (LoginService::mag('P_LOGGED_IN,groep:wikitoegang', $wiki)
+				OR ( LoginService::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getTypeOptions()) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
 		) {
 
 			// okay we're logged in - set the globals
-			$account = LoginModel::getAccount();
+			$account = LoginService::getAccount();
 			$USERINFO['name'] = ProfielRepository::getNaam($account->uid, 'civitas');
 			$USERINFO['mail'] = $account->email;
 			$USERINFO['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenRepository::class)->getWikiToegang($account->uid);
@@ -132,7 +132,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 			#    return true;
 		}
 
-		if (LoginModel::getUid() != 'x999') {
+		if (LoginService::getUid() != 'x999') {
 			msg('Niet genoeg permissies', -1);
 		}
 		// to be sure
@@ -149,7 +149,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 * @see     auth_logoff()
 	 */
 	function logOff() {
-		ContainerFacade::getContainer()->get(LoginModel::class)->logout();
+		ContainerFacade::getContainer()->get(LoginService::class)->logout();
 	}
 
 	/**

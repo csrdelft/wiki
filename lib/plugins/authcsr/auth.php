@@ -8,7 +8,7 @@
  */
 // must be run within Dokuwiki
 use CsrDelft\common\ContainerFacade;
-use CsrDelft\model\entity\security\AuthenticationMethod;
+use CsrDelft\entity\security\enum\AuthenticationMethod;
 use CsrDelft\repository\groepen\RechtenGroepenRepository;
 use CsrDelft\repository\ProfielRepository;
 use CsrDelft\repository\security\AccountRepository;

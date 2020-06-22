@@ -131,7 +131,7 @@ class syntax_plugin_fontcolor extends DokuWiki_Syntax_Plugin {
             return true;
         }
         if($mode == 'odt') {
-            /** @var $renderer renderer_plugin_odt_page */
+            /** @var $renderer renderer_plugin_odt */
             list($state, $color) = $data;
             switch($state) {
                 case DOKU_LEXER_ENTER :
@@ -169,7 +169,7 @@ class syntax_plugin_fontcolor extends DokuWiki_Syntax_Plugin {
      */
     protected function _color2hexdec($color) {
         $less = new lessc();
-        $less->addImportDir(DOKU_INC);
+        $less->importDir[] = DOKU_INC;
 
         $css = '.test { color: spin('.$color.', 0); }';  //less try to spin all colors, and output them as hexdec
         try {

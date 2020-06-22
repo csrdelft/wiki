@@ -1,32 +1,44 @@
 #wiki__text{
-	display:block;
+	/*display:block;*/
 }
+
 
 
 /* Sample */
 
-.dropdown-menu {
+.textcomplete-dropdown.dropdown-menu {
     border: 1px solid #ddd;
     background-color: white;
-    
+    max-height: 200px;
+    overflow: auto;
+    overflow-x : -moz-hidden-unscrollable;
+    overflow-x : hidden;
 }
 
-.dropdown-menu li {
+.textcomplete-dropdown.dropdown-menu li {
     border-top: 1px solid #ddd;
     padding: 2px 5px;
     margin:0px;
+    white-space: nowrap;
     
 }
 
-.dropdown-menu li a {
+.textcomplete-dropdown.dropdown-menu li.textcomplete-header,
+.textcomplete-dropdown.dropdown-menu li.textcomplete-footer{
+	text-align:center;
 	color: #000;
 }
 
-.dropdown-menu li:first-child {
+.textcomplete-dropdown.dropdown-menu li a {
+	color: #000;
+	margin-right: 15px;
+}
+
+.textcomplete-dropdown.dropdown-menu li:first-child {
     border-top: none;
 }
 
-.dropdown-menu li:hover,
+.textcomplete-dropdown.dropdown-menu li:hover,
 .dropdown-menu .active {
     background-color: rgb(110, 183, 219);
 }
@@ -34,12 +46,12 @@
 
 /* SHOULD not modify */
 
-.dropdown-menu {
+.textcomplete-dropdown.dropdown-menu {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.dropdown-menu a:hover {
+.textcomplete-dropdown.dropdown-menu a:hover {
     cursor: pointer;
 }

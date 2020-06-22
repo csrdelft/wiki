@@ -7,11 +7,6 @@
  * @author     Mykola Ostrovskyy <dwpforge@gmail.com>
  */
 
-/* Must be run within Dokuwiki */
-if(!defined('DOKU_INC')) die();
-
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
-require_once(DOKU_PLUGIN . 'action.php');
 require_once(DOKU_PLUGIN . 'batchedit/admin.php');
 require_once(DOKU_PLUGIN . 'batchedit/config.php');
 require_once(DOKU_PLUGIN . 'batchedit/server.php');
@@ -60,7 +55,11 @@ class action_plugin_batchedit extends DokuWiki_Action_Plugin {
             return;
         }
 
-        setcookie(BatcheditConfig::COOKIE, $admin->getConfig()->serialize(), time() + self::YEAR_IN_SECONDS);
+        // FIXME: Before PHP 7.3 there is no official way to set SameSite attribiute with setcookie().
+        // Use header() function instead until PHP 7.2 is still supported.
+        // setcookie(BatcheditConfig::COOKIE, $admin->getConfig()->serialize(), time() + self::YEAR_IN_SECONDS);
+        header('Set-Cookie: ' . BatcheditConfig::COOKIE . '=' . urlencode($admin->getConfig()->serialize()) .
+                '; SameSite=Strict; Max-Age=' . self::YEAR_IN_SECONDS);
     }
 
     /**
@@ -102,7 +101,7 @@ class action_plugin_batchedit extends DokuWiki_Action_Plugin {
 
             case 'js':
                 $type = 'script';
-                $data = array('type' => 'text/javascript', 'charset' => 'utf-8', 'src' => $fileName, '_data' => '');
+                $data = array('type' => 'text/javascript', 'charset' => 'utf-8', 'src' => $fileName, '_data' => '', 'defer' => 'defer');
                 break;
         }
 

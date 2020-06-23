@@ -15,12 +15,12 @@ if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 require_once DOKU_PLUGIN.'action.php';
 
-class action_plugin_imagemap extends DokuWiki_Action_Plugin {
+class action_plugin_imagemapping extends DokuWiki_Action_Plugin {
 
     public function register(Doku_Event_Handler $controller) {
 
         $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, 'handle_start');
-        $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'handle_toolbar_define');
+        // $controller->register_hook('TOOLBAR_DEFINE', 'AFTER', $this, 'handle_toolbar_define');
 
     }
 
@@ -34,11 +34,10 @@ class action_plugin_imagemap extends DokuWiki_Action_Plugin {
 
         $event->data[] = array (
             'type' => 'imagemap',
-            'title' => 'imagemap',
-            'icon' => '../../plugins/imagemap/map.png',
+            'title' => 'imagemapping',
+            'icon' => '../../plugins/imagemapping/map.png',
             'list' => array(),
             );
-
     }
 
 }

@@ -16,7 +16,7 @@ if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
 require_once(DOKU_PLUGIN.'syntax.php');
 
-class syntax_plugin_imagemap extends DokuWiki_Syntax_Plugin {
+class syntax_plugin_imagemapping extends DokuWiki_Syntax_Plugin {
 
     function __construct() {
     }
@@ -29,16 +29,17 @@ class syntax_plugin_imagemap extends DokuWiki_Syntax_Plugin {
     }
 
     function connectTo($mode) {
-        $this->Lexer->addEntryPattern('\{\{map>[^\}]+\}\}', $mode, 'plugin_imagemap');
+        $this->Lexer->addEntryPattern('\{\{map>[^\}]+\}\}', $mode, 'plugin_imagemapping');
     }
     function postConnect() {
-        $this->Lexer->addExitPattern('\{\{<map\}\}', 'plugin_imagemap');
+        $this->Lexer->addExitPattern('\{\{<map\}\}', 'plugin_imagemapping');
     }
 
     function handle($match, $state, $pos, Doku_Handler $handler){
         global $conf;
         global $ID;
         $args = array($state);
+
         switch ($state) {
             case DOKU_LEXER_ENTER:
                 $img = Doku_Handler_Parse_Media(substr($match, 6, -2));
@@ -65,13 +66,24 @@ class syntax_plugin_imagemap extends DokuWiki_Syntax_Plugin {
                               $img['align'], $img['width'], $img['height'],
                               $img['cache']);
 
-                $ReWriter = new ImageMap_Handler($mapname, $handler->CallWriter);
-                $handler->CallWriter =& $ReWriter;
-                break;
+                if ( $handler->CallWriter ) {
+                    $ReWriter = new ImageMap_Handler($mapname, $handler->CallWriter);
+                    $handler->CallWriter =& $ReWriter;
+                } else {
+                    $ReWriter = new ImageMap_Handler($mapname, $handler->getCallWriter());
+                    $handler->setCallWriter( $ReWriter );
+                }
+            break;
             case DOKU_LEXER_EXIT:
-                $handler->CallWriter->process();
-                $ReWriter =& $handler->CallWriter;
-                $handler->CallWriter =& $ReWriter->CallWriter;
+                if ( $handler->CallWriter ) {
+                    $handler->CallWriter->process();
+                    $ReWriter = $handler->CallWriter;
+                    $handler->CallWriter =& $ReWriter->CallWriter;
+                } else {
+                    $handler->getCallWriter()->process();
+                    $ReWriter = $handler->getCallWriter();
+                    $handler->setCallWriter( $ReWriter->CallWriter );
+                }
                 break;
             case DOKU_LEXER_MATCHED:
                 break;
@@ -167,13 +179,22 @@ class syntax_plugin_imagemap extends DokuWiki_Syntax_Plugin {
                                 $url = 'file:///'.$url;
                                 $target = $conf['target']['windows'];
                                 break;
+                            case 'internalmedia':
+                                list($url,$hash) = explode('#',$url,2);
+                                resolve_mediaid(getNS($ID), $url, $exists);
+                                $title = $renderer->_media($url, $title, null,null,null,null, false);
+                                $url = ml($url, ($extra[1]=='direct'));
+                                if ($hash)
+                                    $url .= '#'.$hash;
+                                break;
                         }
                         if($url){
                             $renderer->doc .= '<area href="'.$url.'"';
                             if (!empty($target))
                                 $renderer->doc .= ' target="'.$target.'"';
                             $renderer->doc .= ' title="'.$title.'" alt="'.$title.'"';
-                            $renderer->doc .= ' shape="'.$shape.'" coords="'.$coords.'" />';
+
+                            $renderer->doc .= ' shape="'.$shape.'" coords="'.$coords.'"/>';
                         }
                     } elseif ($data[1]=='divstart') {
                         $renderer->doc .= DOKU_LF.'<div class="imapcontent">'.DOKU_LF;
@@ -219,22 +240,28 @@ class syntax_plugin_imagemap extends DokuWiki_Syntax_Plugin {
 
 }
 
-/**
- * For DokuWiki versions before Destritus
- */
-if ( !interface_exists("Doku_Handler_CallWriter_Interface") ) {
-  interface Doku_Handler_CallWriter_Interface
-  {
-  }
+if ( interface_exists( "dokuwiki\Parsing\Handler\CallWriterInterface", true ) ) {
+    // interface does not exist. DW too old?!
+    interface InternalCallWriterInterface extends dokuwiki\Parsing\Handler\CallWriterInterface {
+    }
+
+} else {
+    if ( !interface_exists("Doku_Handler_CallWriter_Interface") ) {
+        interface Doku_Handler_CallWriter_Interface {}
+    }
+
+    // interface does not exist. DW too old?!
+    interface InternalCallWriterInterface extends Doku_Handler_CallWriter_Interface {
+    }
 }
 
-class ImageMap_Handler implements Doku_Handler_CallWriter_Interface {
+class ImageMap_Handler implements InternalCallWriterInterface {
 
-    var $CallWriter;
+    public $CallWriter;
 
-    var $calls = array();
-    var $areas = array();
-    var $mapname;
+    private $calls = array();
+    private $areas = array();
+    private $mapname;
 
     function __construct($name, &$CallWriter) {
         $this->CallWriter =& $CallWriter;
@@ -274,7 +301,7 @@ class ImageMap_Handler implements Doku_Handler_CallWriter_Interface {
 
     function _addPluginCall($args, $pos) {
         $this->CallWriter->writeCall(array('plugin',
-                                           array('imagemap', $args, $args[0]),
+                                           array('imagemapping', $args, $args[0]),
                                            $pos));
     }
 
@@ -292,7 +319,11 @@ class ImageMap_Handler implements Doku_Handler_CallWriter_Interface {
             }
             $coords = array_map('trim', $coords);
             $title = trim($match[1]);
-            $this->_addPluginCall(array(DOKU_LEXER_MATCHED, 'area', $shape, join(',',$coords),
+            
+			$coords = join(',',$coords);
+			$coords = trim( $coords );
+            
+            $this->_addPluginCall(array(DOKU_LEXER_MATCHED, 'area', $shape, $coords,
                                         $type, $title, $url, $wiki), $pos);
         }
         return $title;
@@ -305,7 +336,8 @@ class ImageMap_Handler implements Doku_Handler_CallWriter_Interface {
             switch ($type) {
                 case 'plugin':
 
-                    if ( $plugin =& plugin_load('syntax', $data[0]) && method_exists($plugin, 'convertToImageMapArea')) {
+                    $plugin = plugin_load('syntax', $data[0]);
+                    if ( $plugin != null && method_exists($plugin, 'convertToImageMapArea')) {
                         $plugin->convertToImageMapArea($this, $data[1], $pos);
                         break;
                     }

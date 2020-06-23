@@ -261,7 +261,7 @@ class syntax_plugin_imagereference_imgcaption extends DokuWiki_Syntax_Plugin {
      * @return array(string imgrefname, string classes, string caption)
      */
     protected function _parseParam($str) {
-        if($str == null || count($str) < 1) {
+        if($str == null || strlen($str) < 1) {
             return array();
         }
 

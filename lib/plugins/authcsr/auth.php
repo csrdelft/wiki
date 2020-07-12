@@ -102,7 +102,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 
 		// als ingelogd genoeg permissies heeft gegevens ophalen en bewaren
 		if (LoginService::mag('P_LOGGED_IN,groep:wikitoegang', $wiki)
-				OR ( LoginService::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getTypeOptions()) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
+				OR ( LoginService::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getEnumValues()) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
 		) {
 
 			// okay we're logged in - set the globals

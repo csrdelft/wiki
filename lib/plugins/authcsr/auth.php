@@ -6,19 +6,34 @@
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Gerrit Uitslag <klapinklapin@gmail.com>
  */
+
 // must be run within Dokuwiki
 use CsrDelft\common\ContainerFacade;
+use CsrDelft\entity\security\Account;
 use CsrDelft\entity\security\enum\AuthenticationMethod;
 use CsrDelft\repository\groepen\RechtenGroepenRepository;
-use CsrDelft\repository\ProfielRepository;
 use CsrDelft\repository\security\AccountRepository;
 use CsrDelft\service\security\LoginService;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
 
 if (!defined('DOKU_INC')) {
 	die();
 }
 
 class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
+	/**
+	 * @var RechtenGroepenRepository
+	 */
+	private $rechtenGroepenRepository;
+	/**
+	 * @var TokenStorageInterface
+	 */
+	private $tokenStorage;
+	/**
+	 * @var AccountRepository
+	 */
+	private $accountRepository;
 
 	/**
 	 * Constructor.
@@ -39,6 +54,12 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 
 		//intialize your auth system and set success to true, if successful
 		$this->success = true;
+
+		$container = ContainerFacade::getContainer();
+
+		$this->tokenStorage = $container->get('security.token_storage');
+		$this->rechtenGroepenRepository = $container->get(RechtenGroepenRepository::class);
+		$this->accountRepository = $container->get(AccountRepository::class);
 	}
 
 	/**
@@ -66,50 +87,46 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 * The function needs to set some globals needed by
 	 * DokuWiki like auth_login() does.
 	 *
-	 * @see auth_login()
-	 *
-	 * Controleert via code van de standaard C.S.R.-site of ingelogde geen
-	 * nobody is, vervolgens kunnen gegegens worden opgehaald.
-	 * Als er inloggegevens worden meegegeven wordt gepoogd in te loggen.
-	 *
-	 * @param   string  $user    Username (uid or nickname)
-	 * @param   string  $pass    Cleartext Password
-	 * @param   bool    $sticky  Cookie should not expire. Not used.
+	 * @param string $user Username (uid or nickname)
+	 * @param string $pass Cleartext Password
+	 * @param bool $sticky Cookie should not expire. Not used.
 	 * @return  bool             true on successful auth
+	 * @see auth_login()
+	 * @throws AccessDeniedException
+	 *
+	 * Controleert of er een ingelogde gebruiker is, als dit niet het geval
+	 * is, wordt een AccessDeniedException gethrowed wat er voor zorgt dat
+	 * de gebruiker naar /login gestuurd wordt.
 	 */
 	function trustExternal($user, $pass, $sticky = false) {
 		global $USERINFO;
-		global $lang;
 		global $conf;
 
-		// als er een gebruiker is gegeven willen we graag proberen in te loggen via inlogformulier
-		if (!empty($user)) {
-			if (ContainerFacade::getContainer()->get(LoginService::class)->login(strval($user), strval($pass))) {
-				//success
-			} else {
-				//invalid credentials - log off
-				msg($lang['badlogin'], -1);
-				auth_logoff();
-				return false;
-			}
+		$token = $this->tokenStorage->getToken();
+
+		if ($user == "" && $token == null) {
+			// Een AccessDeniedException zorgt ervoor dat naar /login geredirect wordt en dat de gebruiker
+			// na login weer op de goede pagina terecht komt.
+			throw new AccessDeniedException();
 		}
 
 		$wiki = array(
-            AuthenticationMethod::cookie_token,
-            AuthenticationMethod::password_login,
-            AuthenticationMethod::recent_password_login,
-        );
+			AuthenticationMethod::cookie_token,
+			AuthenticationMethod::password_login,
+			AuthenticationMethod::recent_password_login,
+		);
 
 		// als ingelogd genoeg permissies heeft gegevens ophalen en bewaren
 		if (LoginService::mag('P_LOGGED_IN,groep:wikitoegang', $wiki)
-				OR ( LoginService::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getEnumValues()) AND $_SERVER['PHP_SELF'] == '/wiki/feed.php')
+			or (LoginService::mag('P_LOGGED_IN,groep:wikitoegang', AuthenticationMethod::getEnumValues()) and $_SERVER['PHP_SELF'] == '/wiki/feed.php')
 		) {
 
 			// okay we're logged in - set the globals
-			$account = LoginService::getAccount();
-			$USERINFO['name'] = ProfielRepository::getNaam($account->uid, 'civitas');
+			/** @var Account $account */
+			$account = $token->getUser();
+			$USERINFO['name'] = $account->profiel->getNaam('civitas');
 			$USERINFO['mail'] = $account->email;
-			$USERINFO['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenRepository::class)->getWikiToegang($account->uid);
+			$USERINFO['grps'] = $this->rechtenGroepenRepository->getWikiToegang($account->uid);
 			// always add the default group to the list of groups
 			if (!in_array($conf['defaultgroup'], $USERINFO['grps'])) {
 				$USERINFO['grps'][] = $conf['defaultgroup'];
@@ -118,18 +135,8 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 			$_SERVER['REMOTE_USER'] = $account->uid;
 			$_SESSION[DOKU_COOKIE]['auth']['user'] = $account->uid;
 			$_SESSION[DOKU_COOKIE]['auth']['info'] = $USERINFO;
-			return true;
 
-			# example:
-			#    // set the globals if authed
-			#    $USERINFO['name'] = 'FIXME'; //real name
-			#    $USERINFO['mail'] = 'FIXME';
-			#    $USERINFO['grps'] = array('FIXME');
-			#    $_SERVER['REMOTE_USER'] = $user; //username=uid
-			#    $_SESSION[DOKU_COOKIE]['auth']['user'] = $user;
-			#    $_SESSION[DOKU_COOKIE]['auth']['pass'] = $pass;
-			#    $_SESSION[DOKU_COOKIE]['auth']['info'] = $USERINFO;
-			#    return true;
+			return true;
 		}
 
 		if (LoginService::getUid() != 'x999') {
@@ -149,7 +156,11 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 * @see     auth_logoff()
 	 */
 	function logOff() {
-		ContainerFacade::getContainer()->get(LoginService::class)->logout();
+		$token = $this->tokenStorage->getToken();
+		// Alleen uitloggen als er een token is
+		if ($token) {
+			redirect("/logout");
+		}
 	}
 
 	/**
@@ -162,101 +173,30 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 * mail string  email addres of the user
 	 * grps array   list of groups the user is in
 	 *
-	 * @param   string $useruid the user name
+	 * @param string $useruid the user name
 	 * @param bool $requireGroups
 	 *
-	 * @return array containing user data or false
+	 * @return array|false containing user data or false
 	 */
 	function getUserData($useruid, $requireGroups = true) {
 		global $conf;
 
-		if (AccountRepository::isValidUid($useruid)) {
-			$profiel = ProfielRepository::get($useruid);
-			if ($profiel) {
-				$info['name'] = $profiel->getNaam();
-				$info['mail'] = $profiel->getPrimaryEmail();
-				$info['grps'] = ContainerFacade::getContainer()->get(RechtenGroepenRepository::class)->getWikiToegang($useruid);
-				// always add the default group to the list of groups
-				if (!in_array($conf['defaultgroup'], $info['grps']) AND $useruid != 'x999') {
-					$info['grps'][] = $conf['defaultgroup'];
-				}
+		$account = $this->accountRepository->find($useruid);
 
-				return $info;
+		if ($account) {
+			$profiel = $account->profiel;
+			$info['name'] = $profiel->getNaam();
+			$info['mail'] = $profiel->getPrimaryEmail();
+			$info['grps'] = $this->rechtenGroepenRepository->getWikiToegang($useruid);
+			// always add the default group to the list of groups
+			if (!in_array($conf['defaultgroup'], $info['grps']) and $useruid != 'x999') {
+				$info['grps'][] = $conf['defaultgroup'];
 			}
+
+			return $info;
 		}
 		return false;
 	}
-
-	/**
-	 * Modify user data [implement only where required/possible]
-	 *
-	 * Set the mod* capabilities according to the implemented features
-	 *
-	 * @param   string $user    nick of the user to be changed
-	 * @param   array  $changes array of field/value pairs to be changed (password will be clear text)
-	 * @return  bool
-	 */
-	//public function modifyUser($user, $changes) {
-	// FIXME implement
-	//    return false;
-	//}
-
-
-	/**
-	 * Bulk retrieval of user data [implement only where required/possible]
-	 *
-	 * Set getUsers capability when implemented
-	 *
-	 * @param   int   $start     index of first user to be returned
-	 * @param   int   $limit     max number of users to be returned
-	 * @param   array $filter    array of field/pattern pairs, null for no filter
-	 * @return  array list of userinfo (refer getUserData for internal userinfo details)
-	 */
-	//public function retrieveUsers($start = 0, $limit = -1, $filter = null) {
-	// FIXME implement
-	//    return array();
-	//}
-
-	/**
-	 * Return a count of the number of user which meet $filter criteria
-	 * [should be implemented whenever retrieveUsers is implemented]
-	 *
-	 * Set getUserCount capability when implemented
-	 *
-	 * @param  array $filter array of field/pattern pairs, empty array for no filter
-	 * @return int
-	 */
-	//public function getUserCount($filter = array()) {
-	// FIXME implement
-	//    return 0;
-	//}
-
-	/**
-	 * Define a group [implement only where required/possible]
-	 *
-	 * Set addGroup capability when implemented
-	 *
-	 * @param   string $group
-	 * @return  bool
-	 */
-	//public function addGroup($group) {
-	// FIXME implement
-	//    return false;
-	//}
-
-	/**
-	 * Retrieve groups [implement only where required/possible]
-	 *
-	 * Set getGroups capability when implemented
-	 *
-	 * @param   int $start
-	 * @param   int $limit
-	 * @return  array
-	 */
-	//public function retrieveGroups($start = 0, $limit = 0) {
-	// FIXME implement
-	//    return array();
-	//}
 
 	/**
 	 * Return case sensitivity of the backend
@@ -297,7 +237,7 @@ class auth_plugin_authcsr extends DokuWiki_Auth_Plugin {
 	 *
 	 * Groupnames are to be passed without a leading '@' here.
 	 *
-	 * @param  string $group groupname
+	 * @param string $group groupname
 	 * @return string the cleaned groupname
 	 */
 	public function cleanGroup($group) {

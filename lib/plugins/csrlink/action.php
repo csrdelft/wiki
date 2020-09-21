@@ -10,7 +10,8 @@
  * @author     P.W.G. Brussee <brussee@live.nl>
  */
 // must be run within Dokuwiki
-use CsrDelft\view\JsonResponse;
+
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 if (!defined('DOKU_INC')) {
 	die();
@@ -84,7 +85,8 @@ class action_plugin_csrlink extends DokuWiki_Action_Plugin {
 		}
 
 		$view = new JsonResponse($result);
-		$view->view();
+
+		$view->send();
 	}
 
 }

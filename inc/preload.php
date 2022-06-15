@@ -61,4 +61,4 @@ setlocale(LC_NUMERIC, 'en_US.UTF-8');
 define('DOKU_SESSION_NAME', 'CSRSESSID');
 define('DOKU_SESSION_LIFETIME', '');
 define('DOKU_SESSION_PATH', '/');
-define('DOKU_SESSION_DOMAIN', CSR_DOMAIN);
+define('DOKU_SESSION_DOMAIN', $request->getHost());
